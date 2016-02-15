@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\DBReferences.cs" />
+    <Compile Include="Data\EventList.cs" />
     <Compile Include="Data\ListDBHook.cs" />
     <Compile Include="Data\Model.cs" />
     <Compile Include="Resources\Attributes.cs" />

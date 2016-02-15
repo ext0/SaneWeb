@@ -29,7 +29,6 @@ namespace SaneWebHost.Models
         {
             this.username = username;
             this.password = password;
-            Console.WriteLine(username + ":" + getId());
         }
     }
 }

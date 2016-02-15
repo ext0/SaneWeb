@@ -17,7 +17,7 @@ namespace SaneWeb.Resources.Attributes
         }
     }
 
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property)]
     public class DatabaseValueAttribute : Attribute
     {
         public String column { get; }

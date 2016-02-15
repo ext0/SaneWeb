@@ -3,8 +3,11 @@ using SaneWeb.Data;
 using SaneWeb.Resources;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -25,18 +28,11 @@ namespace SaneWeb.Data
                 id = Utility.randomNumber();
             }
             this.id = id;
-        }
+       }
 
         public int getId()
         {
             return id;
-        }
-
-        public static T deepClone(T source)
-        {
-            T obj = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(source));
-            obj.id = source.getId();
-            return obj;
         }
     }
 }
