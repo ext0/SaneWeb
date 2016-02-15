@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using SaneWeb.Data;
+using SaneWeb.Resources;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,9 +19,11 @@ namespace SaneWeb.Data
 
         public Model() //generate UNIQUE ID
         {
-            String db = DBReferences.findDBStoring<T>();
-            int id = new Random().Next(0, int.MaxValue);
-            while (!DBReferences.checkIdUnique<T>(db, id)) { }
+            int id = Utility.randomNumber();
+            while (!DBReferences.checkIdUnique<T>(DBReferences.findDBStoring<T>(), id))
+            {
+                id = Utility.randomNumber();
+            }
             this.id = id;
         }
 
@@ -31,10 +34,9 @@ namespace SaneWeb.Data
 
         public static T deepClone(T source)
         {
-            String serialized = JsonConvert.SerializeObject(source);
-            T obj = JsonConvert.DeserializeObject<T>(serialized);
-            obj.id = source.id;
-            return JsonConvert.DeserializeObject<T>(serialized);
+            T obj = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(source));
+            obj.id = source.getId();
+            return obj;
         }
     }
 }

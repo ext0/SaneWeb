@@ -27,6 +27,18 @@ namespace SaneWeb.Resources
             }
             return result.ToString();
         }
+
+        public static int randomNumber()
+        {
+            byte[] data = new byte[1];
+            using (RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider())
+            {
+                crypto.GetNonZeroBytes(data);
+                data = new byte[31];
+                crypto.GetNonZeroBytes(data);
+            }
+            return Math.Abs(BitConverter.ToInt32(data, 0));
+        }
     }
 
     namespace SaneWeb.Resources.Arguments

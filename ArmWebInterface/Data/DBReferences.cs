@@ -78,7 +78,6 @@ namespace SaneWeb.Data
             {
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
-                    int i = 0;
                     reader.Read();
                     return (Int64)reader[0] == 0;
                 }

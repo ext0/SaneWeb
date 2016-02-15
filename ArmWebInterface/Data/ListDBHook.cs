@@ -27,16 +27,16 @@ namespace SaneWeb.Data
             if (attributes.Length == 0) throw new Exception(model.Name + " is not a valid table binding type!");
             TableAttribute attribute = attributes.First() as TableAttribute;
             tableName = attribute.tableName;
-            this.properties = new List<AttributeProperty>();
+            properties = new List<AttributeProperty>();
             foreach (PropertyInfo property in model.GetProperties())
             {
                 DatabaseValueAttribute valueAttribute = property.GetCustomAttribute<DatabaseValueAttribute>();
                 if (valueAttribute == null) continue; //user messed up
                 properties.Add(new AttributeProperty(property, valueAttribute));
             }
-            this.idField = model.GetField("id");
-            this.openData = new List<T>();
-            this.pastUpdate = new List<T>();
+            idField = model.BaseType.GetField("id", BindingFlags.NonPublic | BindingFlags.Instance);
+            openData = new List<T>();
+            pastUpdate = new List<T>();
         }
 
         public List<T> getData()
@@ -48,10 +48,15 @@ namespace SaneWeb.Data
                 {
                     while (reader.Read())
                     {
-                        T obj = (T)Activator.CreateInstance(model);
+                        T obj = Activator.CreateInstance<T>();
                         foreach (AttributeProperty property in properties)
                         {
                             property.propertyInfo.SetValue(obj, reader[property.attribute.column]);
+                        }
+                        object id = reader["id"];
+                        if (!(id is DBNull))
+                        {
+                            idField.SetValue(obj, id);
                         }
                         openData.Add(obj);
                     }
@@ -63,7 +68,7 @@ namespace SaneWeb.Data
 
         private void updateCheckData()
         {
-            pastUpdate = new List<T>(openData.Select(x=>Model<T>.deepClone(x)));
+            pastUpdate = new List<T>(openData.Select(x => Model<T>.deepClone(x)));
         }
 
         private List<T> getNewObjects()
@@ -80,7 +85,10 @@ namespace SaneWeb.Data
                         break;
                     }
                 }
-                if (flag) type.Add(obj);
+                if (flag)
+                {
+                    type.Add(obj);
+                }
             }
             return type;
         }
@@ -118,20 +126,44 @@ namespace SaneWeb.Data
 
         private List<T> getRemovedObjects()
         {
-            return null;
+            List<T> type = new List<T>();
+            foreach (T exist in pastUpdate)
+            {
+                bool flag = false;
+                foreach (T obj in openData)
+                {
+                    if (exist.getId() == obj.getId())
+                    {
+                        flag = true;
+                    }
+                }
+                if (!flag)
+                {
+                    type.Add(exist);
+                }
+            }
+            return type;
         }
-
         public int update()
         {
             int i = 0;
             List<T> newObjects = getNewObjects();
             List<T> updateObjects = getUpdatedObjects();
             List<T> removedObjects = getRemovedObjects();
-            Console.WriteLine("NEW: " + newObjects.Count);
-            Console.WriteLine("UPDATED: " + updateObjects.Count);
-            /*
+            //Console.WriteLine("NEW: " + newObjects.Count);
+            //Console.WriteLine("UPDATE: " + updateObjects.Count);
+            //Console.WriteLine("REMOVED: " + removedObjects.Count);
             using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
             {
+                foreach (T obj in newObjects)
+                {
+                    String query = "INSERT INTO " + tableName + " (id," + String.Join(",", properties.Select((x) => (x.attribute.column))) + ") VALUES(" + obj.getId() + "," + String.Join(",", properties.Select((x) => ("\"" + x.propertyInfo.GetValue(obj)) + "\"")) + ")";
+                    using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))
+                    {
+                        i += command.ExecuteNonQuery();
+                    }
+                }
+                /*
                 foreach (T obj in updateObjects)
                 {
                     String query = "UPDATE " + tableName + " SET ";
@@ -142,15 +174,15 @@ namespace SaneWeb.Data
                         updates.Add(property.attribute.column + "=\"" + property.propertyInfo.GetValue(obj) + "\"");
                     }
                     query += String.Join(",", updates) + " WHERE id=" + id;
-                    Console.WriteLine(query);
                     using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))
                     {
                         i += command.ExecuteNonQuery();
                     }
                 }
+                */
+                transaction.Commit();
             }
-            */
-            updateCheckData();
+                updateCheckData();
             return i;
         }
     }

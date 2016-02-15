@@ -20,10 +20,16 @@ namespace SaneWebHost.Models
         [DatabaseValue("password", 64)]
         public String password { get; set; }
 
+        public User() : base()
+        {
+
+        }
+
         public User(String username, String password) : base()
         {
             this.username = username;
             this.password = password;
+            Console.WriteLine(username + ":" + getId());
         }
     }
 }

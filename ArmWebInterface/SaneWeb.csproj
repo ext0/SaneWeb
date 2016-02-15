@@ -108,7 +108,9 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Crypto\" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="View\404.html" />
     <EmbeddedResource Include="View\500.html" />
