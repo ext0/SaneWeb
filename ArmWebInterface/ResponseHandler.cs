@@ -17,7 +17,7 @@ namespace SaneWeb
 {
     public static class ResponseHandler
     {
-        public static string handleResponse(HttpListenerContext context, List<Type> controllers)
+        public static string handleResponse(SaneServer sender, HttpListenerContext context, List<Type> controllers)
         {
             if (context.Response.Cookies.Count == 0)
             {
@@ -84,23 +84,23 @@ namespace SaneWeb
             }
             if (!flag)
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                String nameSpace = typeof(ResponseHandler).Namespace;
-                String request = nameSpace + ".View." + context.Request.RawUrl.Substring(1).Replace("/", ".");
-                if (request.Equals(nameSpace + ".View."))
+                Assembly assembly = Assembly.GetEntryAssembly();
+                String nameSpace = String.Empty;
+                if (context.Request.RawUrl.Trim().Length <= 1)
                 {
-                    request = nameSpace + ".View.Home.html";
+                    return fetchFromResource(assembly, sender.getHomepage());
                 }
-                bool exists = assembly.GetManifestResourceInfo(request) != null;
-                if (!exists)
+                foreach (String s in assembly.GetManifestResourceNames())
                 {
-                    context.Response.StatusCode = 404;
-                    returned = fetchFromResource(assembly, nameSpace + ".View.404.html");
+                    int subset = s.IndexOf(".View.") + 6;
+                    if (s.Substring(subset) == context.Request.RawUrl.Substring(1).Replace("/","."))
+                    {
+                         return fetchFromResource(assembly, s);
+                    }
+                    nameSpace = s;
                 }
-                else
-                {
-                    return fetchFromResource(assembly, request);
-                }
+                context.Response.StatusCode = 404;
+                returned = fetchFromResource(assembly, nameSpace.Substring(0, nameSpace.IndexOf(".")) + ".View.404.html");
             }
             return returned.ToString();
         }

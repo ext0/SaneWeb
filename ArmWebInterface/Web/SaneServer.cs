@@ -12,10 +12,11 @@ namespace SaneWeb.Web
     public class SaneServer
     {
         public readonly HttpListener _listener = new HttpListener();
-        private readonly Func<HttpListenerContext, List<Type>, String> _responderMethod;
+        private readonly Func<SaneServer, HttpListenerContext, List<Type>, String> _responderMethod;
         private List<Type> controllers;
         private List<Type> models;
         private String databasePath;
+        private String homePage;
 
         public SaneServer(String databasePath = "Database\\SaneDB.db", params string[] prefixes)
         {
@@ -65,6 +66,16 @@ namespace SaneWeb.Web
             }
         }
 
+        public void setHomepage(String URI)
+        {
+            homePage = URI;
+        }
+
+        public String getHomepage()
+        {
+            return homePage;
+        }
+
         public void run()
         {
             ThreadPool.QueueUserWorkItem((o) =>
@@ -78,7 +89,7 @@ namespace SaneWeb.Web
                             var ctx = c as HttpListenerContext;
                             try
                             {
-                                string rstr = _responderMethod(ctx, controllers);
+                                string rstr = _responderMethod(this, ctx, controllers);
                                 byte[] buf = Encoding.UTF8.GetBytes(rstr);
                                 ctx.Response.ContentLength64 = buf.Length;
                                 ctx.Response.OutputStream.Write(buf, 0, buf.Length);

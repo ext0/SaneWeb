@@ -15,9 +15,11 @@ namespace SaneWebHost
     public class WebServer
     {
         public static ListDBHook<User> userDBContext;
+
         static void Main(string[] args)
         {
             SaneServer ws = new SaneServer("Database\\SaneDB.db", "http://+:8080/");
+            ws.setHomepage("SaneWebHost.View.Home.html");
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             ws.addController(typeof(Controller));
