@@ -1,4 +1,7 @@
-﻿using SaneWeb.Web;
+﻿using SaneWeb.Resources;
+using SaneWeb.Resources.Attributes;
+using SaneWeb.Resources.SaneWeb.Resources.Arguments;
+using SaneWeb.Web;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -18,7 +21,7 @@ namespace SaneWeb
         {
             if (context.Response.Cookies.Count == 0)
             {
-                context.Response.AddHeader("Set-Cookie", "session=" + randomString(32));
+                context.Response.AddHeader("Set-Cookie", "session=" + Utility.trustedRandomString(32));
             }
             List<HttpArgument> arguments = new List<HttpArgument>();
             MethodInfo[][] info = controllers.Select((g) => (g.GetMethods().Where((x) => (x.GetCustomAttribute<ControllerAttribute>() != null)).ToArray())).ToArray();
@@ -110,38 +113,6 @@ namespace SaneWeb
                     return reader.ReadToEnd();
                 }
             }
-        }
-        public static string randomString(int maxSize)
-        {
-            char[] chars = new char[62];
-            chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".ToCharArray();
-            byte[] data = new byte[1];
-            using (RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider())
-            {
-                crypto.GetNonZeroBytes(data);
-                data = new byte[maxSize];
-                crypto.GetNonZeroBytes(data);
-            }
-            StringBuilder result = new StringBuilder(maxSize);
-            foreach (byte b in data)
-            {
-                result.Append(chars[b % (chars.Length)]);
-            }
-            return result.ToString();
-        }
-    }
-    public class HttpArgument
-    {
-        public readonly String key;
-        public readonly String value;
-        public HttpArgument(String key, String value)
-        {
-            this.key = key;
-            this.value = value;
-        }
-        public override string ToString()
-        {
-            return String.Format("{0}={1}", key, value);
         }
     }
 }

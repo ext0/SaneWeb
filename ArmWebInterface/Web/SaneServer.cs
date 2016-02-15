@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SaneWeb.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,21 +14,20 @@ namespace SaneWeb.Web
         public readonly HttpListener _listener = new HttpListener();
         private readonly Func<HttpListenerContext, List<Type>, String> _responderMethod;
         private List<Type> controllers;
+        private List<Type> models;
+        private String databasePath;
 
-        public SaneServer(params string[] prefixes)
+        public SaneServer(String databasePath = "Database\\SaneDB.db", params string[] prefixes)
         {
-            if (!HttpListener.IsSupported)
-                throw new NotSupportedException(
-                    "Needs Windows XP SP2, Server 2003 or later.");
-
-            if (prefixes == null || prefixes.Length == 0)
-                throw new ArgumentException("prefixes");
+            if (!HttpListener.IsSupported) throw new NotSupportedException("Requires Windows XP SP2, Server 2003 or later.");
 
             foreach (string s in prefixes)
                 _listener.Prefixes.Add(s);
 
             _responderMethod = ResponseHandler.handleResponse;
             controllers = new List<Type>();
+            models = new List<Type>();
+            this.databasePath = databasePath;
             _listener.Start();
         }
 
@@ -36,6 +36,22 @@ namespace SaneWeb.Web
             if (!controllers.Contains(controller))
             {
                 controllers.Add(controller);
+            }
+        }
+
+        public void loadModel(Type model)
+        {
+            if (!models.Contains(model))
+            {
+                if (!DBReferences.databaseOpen(databasePath))
+                {
+                    DBReferences.openDatabase(databasePath);
+                    if (!DBReferences.tableExists(databasePath, "Sessions"))
+                    {
+                        DBReferences.createTable(databasePath, model);
+                    }
+                }
+                models.Add(model);
             }
         }
 
@@ -65,16 +81,15 @@ namespace SaneWeb.Web
                                 ctx.Response.ContentLength64 = buf.Length;
                                 ctx.Response.OutputStream.Write(buf, 0, buf.Length);
                             }
-                            catch { } // suppress any exceptions
+                            catch { }
                             finally
                             {
-                                // always close the stream
                                 ctx.Response.OutputStream.Close();
                             }
                         }, _listener.GetContext());
                     }
                 }
-                catch { } // suppress any exceptions
+                catch { }
             });
         }
 
@@ -82,16 +97,6 @@ namespace SaneWeb.Web
         {
             _listener.Stop();
             _listener.Close();
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public class ControllerAttribute : Attribute
-    {
-        public String path;
-        public ControllerAttribute(String path)
-        {
-            this.path = path;
         }
     }
 }

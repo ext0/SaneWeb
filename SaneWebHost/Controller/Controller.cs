@@ -1,4 +1,5 @@
-﻿using SaneWeb.Web;
+﻿using SaneWeb.Resources.Attributes;
+using SaneWeb.Web;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

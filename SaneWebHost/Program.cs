@@ -1,5 +1,6 @@
 ﻿using SaneWeb.Controller;
 using SaneWeb.Web;
+using SaneWebHost.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +13,9 @@ namespace SaneWebHost
     {
         static void Main(string[] args)
         {
-            SaneServer ws = new SaneServer("http://+:8080/");
+            SaneServer ws = new SaneServer("Database\\SaneDB.db", "http://+:8080/");
             ws.addController(typeof(Controller));
+            ws.loadModel(typeof(Sessions));
             ws.run();
             Console.WriteLine("Webserver running!");
             Console.ReadKey();
