@@ -39,20 +39,22 @@ namespace SaneWeb.Web
             }
         }
 
-        public void loadModel(Type model)
+        public ListDBHook<T> loadModel<T>() where T : Model<T>
         {
+            Type model = typeof(T);
             if (!models.Contains(model))
             {
                 if (!DBReferences.databaseOpen(databasePath))
                 {
                     DBReferences.openDatabase(databasePath);
-                    if (!DBReferences.tableExists(databasePath, "Sessions"))
+                    if (!DBReferences.tableExists<T>(databasePath))
                     {
-                        DBReferences.createTable(databasePath, model);
+                        DBReferences.createTable<T>(databasePath);
                     }
                 }
                 models.Add(model);
             }
+            return DBReferences.openTable<T>(databasePath);
         }
 
         public void removeController(Type controller)

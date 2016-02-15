@@ -36,6 +36,18 @@ namespace SaneWeb.Data
             }
         }
 
+        public static String findDBStoring<T>()
+        {
+            foreach (String db in openDatabases.Keys)
+            {
+                if (tableExists<T>(db))
+                {
+                    return db;
+                }
+            }
+            return null;
+        }
+
         public static SQLiteConnection getDatabase(String db)
         {
             return openDatabases[db];
@@ -58,24 +70,59 @@ namespace SaneWeb.Data
                 throw new Exception("Database is not in an opened state or does not exist!");
             }
         }
-        public static bool tableExists(String db, String table)
+
+        public static bool checkIdUnique<T>(String db, int id)
         {
-            SQLiteDataReader reader = new SQLiteCommand("PRAGMA table_info(\"" + table + "\")", getDatabase(db)).ExecuteReader();
-            if (reader.Read())
+            TableAttribute attribute = getTableInfoFrom<T>();
+            using (SQLiteCommand command = new SQLiteCommand("SELECT EXISTS(SELECT 1 FROM " + attribute.tableName + " WHERE id=" + id + " LIMIT 1)", getDatabase(db)))
             {
-                return true;
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    int i = 0;
+                    reader.Read();
+                    return (Int64)reader[0] == 0;
+                }
             }
-            return false;
         }
-        public static void createTable(String db, Type type)
+
+        private static TableAttribute getTableInfoFrom<T>()
         {
-            object[] attributes = type.GetCustomAttributes(typeof(TableAttribute), true);
+            Type type = typeof(T);
+            object[] attributes = typeof(T).GetCustomAttributes(typeof(TableAttribute), true);
             if (attributes.Length == 0) throw new Exception(type.Name + " is not a valid table binding type!");
             TableAttribute attribute = attributes.First() as TableAttribute;
+            return attribute;
+        }
+
+        public static bool tableExists<T>(String db)
+        {
+            TableAttribute attribute = getTableInfoFrom<T>();
+            using (SQLiteDataReader reader = new SQLiteCommand("PRAGMA table_info(\"" + attribute.tableName + "\")", getDatabase(db)).ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public static ListDBHook<T> openTable<T>(String db) where T : Model<T>
+        {
+            return new ListDBHook<T>(getDatabase(db));
+        }
+        public static void dropTable(String db, String table)
+        {
+            new SQLiteCommand("DROP TABLE '" + table + "'", getDatabase(db)).ExecuteNonQuery();
+        }
+        public static void createTable<T>(String db) where T : Model<T>
+        {
+            TableAttribute attribute = getTableInfoFrom<T>();
             SQLiteConnection dbConnection = getDatabase(db);
             String SQLString = "CREATE TABLE " + attribute.tableName + " (";
             List<String> columns = new List<String>();
-            foreach (PropertyInfo property in type.GetProperties())
+            columns.Add(" id INT");
+            foreach (PropertyInfo property in typeof(T).GetProperties())
             {
                 DatabaseValueAttribute valueAttribute = property.GetCustomAttribute<DatabaseValueAttribute>();
                 if (valueAttribute == null) continue; //user messed up

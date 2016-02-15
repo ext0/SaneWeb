@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -35,6 +36,17 @@ namespace SaneWeb.Resources.Attributes
         public ControllerAttribute(String path)
         {
             this.path = path;
+        }
+    }
+
+    public class AttributeProperty
+    {
+        public readonly PropertyInfo propertyInfo;
+        public readonly DatabaseValueAttribute attribute;
+        public AttributeProperty(PropertyInfo propertyInfo, DatabaseValueAttribute attribute)
+        {
+            this.propertyInfo = propertyInfo;
+            this.attribute = attribute;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using SaneWeb.Controller;
+using SaneWeb.Data;
 using SaneWeb.Web;
 using SaneWebHost.Models;
 using System;
@@ -15,7 +16,12 @@ namespace SaneWebHost
         {
             SaneServer ws = new SaneServer("Database\\SaneDB.db", "http://+:8080/");
             ws.addController(typeof(Controller));
-            ws.loadModel(typeof(Sessions));
+            ListDBHook<User> userDBContext = ws.loadModel<User>();
+            List<User> users = userDBContext.getData();
+            users.Add(new User("widoreu", "password"));
+            userDBContext.update();
+            users[0].password = "password123";
+            userDBContext.update();
             ws.run();
             Console.WriteLine("Webserver running!");
             Console.ReadKey();
