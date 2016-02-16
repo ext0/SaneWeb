@@ -63,7 +63,15 @@ namespace SaneWeb
                         }
                         object[] finalized = new object[parameters.Length];
                         finalized[0] = context;
-                        for (int i = 1; i < parameters.Length; i++)
+                        if (context.Request.HasEntityBody)
+                        {
+                            finalized[1] = new StreamReader(context.Request.InputStream).ReadToEnd();
+                        }
+                        else
+                        {
+                            finalized[1] = String.Empty;
+                        }
+                        for (int i = 2; i < parameters.Length; i++)
                         {
                             finalized[i] = (match.ContainsKey(parameters[i])) ? match[parameters[i]] : null;
                         }

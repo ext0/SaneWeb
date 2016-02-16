@@ -15,8 +15,9 @@ namespace SaneWeb.Controller
     public static class Controller
     {
         [Controller("~/add/")]
-        public static String test(HttpListenerContext context, String num, String num2)
+        public static String test(HttpListenerContext context, String body, String num, String num2)
         {
+            Console.WriteLine(body);
             try
             {
                 int numa = int.Parse(num);
