@@ -32,38 +32,45 @@ using SaneWeb.Data;
 using SaneWeb.Resources;
 using SaneWeb.Web;
 
-static void Main(String[] args)
+namespace SaneWebHost //this will be implicit for the rest of the examples
 {
-  SaneServer ws = new SaneServer(
-    (Utility.fetchFromResource(true, Assembly.GetExecutingAssembly(), "SaneWebHost.Resources.ViewStructure.xml")),
-    "Database\\SaneDB.db",
-    "http://+:80/");
-  ws.setHomepage("SaneWebHost.View.Home.html");
-  ws.run();
-  Console.WriteLine("Webserver running! Press any key to stop...");
-  Console.ReadKey();
-  ws.stop();
+  public static class WebServer
+  {
+    static void Main(String[] args)
+    {
+      SaneServer ws = new SaneServer(
+        (Utility.fetchFromResource(true, Assembly.GetExecutingAssembly(), "SaneWebHost.Resources.ViewStructure.xml")),
+        "Database\\SaneDB.db",
+        "http://+:80/");
+      ws.run();
+      Console.WriteLine("Webserver running! Press any key to stop...");
+      Console.ReadKey();
+      ws.stop();
+    }
+  }
 }
 ```
-
 <h2>API controller</h2>
 SaneWeb uses a simple API controller that allows for simple creation of new API calls without worrying about backend control, while giving you access to low-end HTTP controls at the same time. You can choose to ignore the underlying HTTP layer (handling status codes, etc) if you would just like a quick & easy solution, but it's there if necessary.
 Each API call must be declared in a static class, with methods defined with the `Controller` attribute along with the URL to where the API will be called from. For example, the following API call with be called through `domain/add/?num1=0&num2=0` and also pass the body (if supplied from a POST request) to the method. Then, the data returned from this request will be delivered to the client.
 ```C#
 using SaneWeb.Resources.Attributes;
 
-[Controller("~/add/")]
-public static String test(HttpListenerContext context, String body, String num, String num2)
+public static class Controller
 {
-  try
+  [Controller("~/add/")]
+  public static String test(HttpListenerContext context, String body, String num, String num2)
   {
-    int numa = int.Parse(num);
-    int numb = int.Parse(num2);
-    return (numa + numb).ToString();
-  }
-  catch
-  {
-    return "Invalid number syntax!";
+    try
+    {
+      int numa = int.Parse(num);
+      int numb = int.Parse(num2);
+      return (numa + numb).ToString();
+    }
+    catch
+    {
+      return "Invalid number syntax!";
+    }
   }
 }
 ```
@@ -77,7 +84,7 @@ using SaneWeb.Resources.Attributes;
 
 [Table("Alpacas")]
 public class Alpaca : Model<Alpaca>
-  {
+{
   [DatabaseValue("name", 64)]
   public String name { get; set; }
 
@@ -121,55 +128,82 @@ The following `Controller` code will give some basic functionality to your web a
 using SaneWeb.Resources.Attributes;
 using Newtonsoft.Json;
 
-[Controller("~/addAlpaca/")]
-public static String test(HttpListenerContext context, String body, String name, String age, String description)
+public static class Controller
 {
-  List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
-  Alpaca alpaca = new Alpaca(name, age, description));
-  alpacas.add(alpaca);
-  WebServer.alpacaDB.update();
-  return JsonConvert.SerializeObject(alpaca);
-}
-
-[Controller("~/getAlpaca/")]
-public static String test(HttpListenerContext context, String body, String name)
-{
-  List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
-  foreach (Alpaca alpaca in alpacas)
+  [Controller("~/addAlpaca/")]
+  public static String test(HttpListenerContext context, String body, String name, String age, String description)
   {
-    if (alpaca.name.Equals(name))
-    {
-      return JsonConvert.SerializeObject(alpaca);
-    }
-  }
-  return "No alpaca under that name!";
-}
-
-[Controller("~/increaseAge/")]
-public static String test(HttpListenerContext context, String body, String name)
-{
-  List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
-  bool flag = false;
-  foreach (Alpaca alpaca in alpacas)
-  {
-    if (alpaca.name.Equals(name))
-    {
-      alpaca.age++;
-      flag = true;
-      break;
-    }
-  }
-  if (flag)
-  {
+    List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
+    Alpaca alpaca = new Alpaca(name, age, description));
+    alpacas.add(alpaca);
     WebServer.alpacaDB.update();
-    return "Increased age successfully!";
+    return JsonConvert.SerializeObject(alpaca);
   }
-  else
+  
+  [Controller("~/getAlpaca/")]
+  public static String test(HttpListenerContext context, String body, String name)
   {
+    List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
+    foreach (Alpaca alpaca in alpacas)
+    {
+      if (alpaca.name.Equals(name))
+      {
+        return JsonConvert.SerializeObject(alpaca);
+      }
+    }
     return "No alpaca under that name!";
+  }
+  
+  [Controller("~/increaseAge/")]
+  public static String test(HttpListenerContext context, String body, String name)
+  {
+    List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
+    bool flag = false;
+    foreach (Alpaca alpaca in alpacas)
+    {
+      if (alpaca.name.Equals(name))
+      {
+        alpaca.age++;
+        flag = true;
+        break;
+      }
+    }
+    if (flag)
+    {
+      WebServer.alpacaDB.update();
+      return "Increased age successfully!";
+    }
+    else
+    {
+      return "No alpaca under that name!";
+    }
   }
 }
 ```
+So, now we have a controller, a model, and a webserver. To complete the example, all we have to do is hook them in and run! The following code will hook in the controller and load the model into SaneServer.
+```C#
+using SaneWeb.Controller;
+using SaneWeb.Data;
+using SaneWeb.Resources;
+using SaneWeb.Web;
 
-
-
+public static class WebServer
+{
+  public static ListDBHook<Alpaca> alpacaDB;
+  
+  static void Main(String[] args)
+  {
+    SaneServer ws = new SaneServer(
+      (Utility.fetchFromResource(true, Assembly.GetExecutingAssembly(), "SaneWebHost.Resources.ViewStructure.xml")),
+      "Database\\SaneDB.db",
+      "http://+:80/");
+    alpacaDB = ws.loadModel<Alpaca>();
+    ws.addController(typeof(Controller));
+    ws.run();
+    Console.WriteLine("Webserver running! Press any key to stop...");
+    Console.ReadKey();
+    ws.stop();
+  }
+}
+```
+Now, running the project will load up a web server! Write up a quick HTML page and some JavaScript to query the API with AJAX requests and you're good to go!
