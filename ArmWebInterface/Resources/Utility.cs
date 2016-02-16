@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,6 +40,34 @@ namespace SaneWeb.Resources
                 crypto.GetNonZeroBytes(data);
             }
             return Math.Abs(BitConverter.ToInt32(data, 0));
+        }
+
+        public static byte[] fetchForClient(Assembly assembly, String resourceName)
+        {
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                byte[] buffer = new byte[16 * 1024];
+                using (MemoryStream reader = new MemoryStream())
+                {
+                    int read;
+                    while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        reader.Write(buffer, 0, read);
+                    }
+                    return reader.ToArray();
+                }
+            }
+        }
+
+        public static String fetchFromResource(bool isText, Assembly assembly, String resourceName)
+        {
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
         }
     }
 

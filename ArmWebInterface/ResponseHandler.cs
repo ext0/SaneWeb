@@ -1,4 +1,5 @@
-﻿using SaneWeb.Resources;
+﻿using Newtonsoft.Json;
+using SaneWeb.Resources;
 using SaneWeb.Resources.Attributes;
 using SaneWeb.Resources.SaneWeb.Resources.Arguments;
 using SaneWeb.Web;
@@ -12,12 +13,13 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace SaneWeb
 {
     public static class ResponseHandler
     {
-        public static string handleResponse(SaneServer sender, HttpListenerContext context, List<Type> controllers)
+        public static byte[] handleResponse(SaneServer sender, HttpListenerContext context, List<Type> controllers)
         {
             if (context.Response.Cookies.Count == 0)
             {
@@ -37,7 +39,7 @@ namespace SaneWeb
             {
                 arguments.Add(new HttpArgument(key, context.Request.QueryString.GetValues(key).First()));
             }
-            Object returned = String.Empty;
+            byte[] returned = new byte[] { };
             bool flag = false;
             foreach (MethodInfo method in methods)
             {
@@ -65,17 +67,19 @@ namespace SaneWeb
                         {
                             finalized[i] = (match.ContainsKey(parameters[i])) ? match[parameters[i]] : null;
                         }
-                        returned = method.Invoke(null, finalized);
+                        context.Response.ContentType = "application/json";
+                        returned = Encoding.UTF8.GetBytes(method.Invoke(null, finalized) + "");
                     }
                     catch (Exception e)
                     {
-                        if (e is TargetParameterCountException)
+                        context.Response.ContentType = "application/json";
+                        if (sender.getShowPublicErrors())
                         {
-                            returned = "An error occured due to a malformed request! Please verify parameters.";
+                            returned = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(e));
                         }
                         else
                         {
-                            returned = "An unknown error occured processing your request! [" + e.Message + "]";
+                            returned = Encoding.UTF8.GetBytes("An error occured processing your request!");
                         }
                     }
                     flag = true;
@@ -85,34 +89,42 @@ namespace SaneWeb
             if (!flag)
             {
                 Assembly assembly = Assembly.GetEntryAssembly();
-                String nameSpace = String.Empty;
+                XmlDocument structure = sender.getViewStructure();
+                String xPath = "view/resource";
+                XmlNodeList resources = structure.SelectNodes(xPath);
+                String request = context.Request.RawUrl.Substring(1).Replace("/", ".");
+                String homePage = String.Empty;
+                String notFound = String.Empty;
+                foreach (XmlNode node in resources)
+                {
+                    if (request.Equals(node.Attributes["path"].Value.Replace("/", ".")))
+                    {
+                        context.Response.ContentType = node.Attributes["content-type"].Value;
+                        return Utility.fetchForClient(assembly, node.Attributes["location"].Value);
+                    }
+                    if (node.Attributes["situational"] != null)
+                    {
+                        String value = node.Attributes["situational"].Value;
+                        if (value.Equals("homepage"))
+                        {
+                            homePage = node.Attributes["location"].Value;
+                        }
+                        else if (value.Equals("404"))
+                        {
+                            notFound = node.Attributes["location"].Value;
+                        }
+                    }
+                }
                 if (context.Request.RawUrl.Trim().Length <= 1)
                 {
-                    return fetchFromResource(assembly, sender.getHomepage());
-                }
-                foreach (String s in assembly.GetManifestResourceNames())
-                {
-                    int subset = s.IndexOf(".View.") + 6;
-                    if (s.Substring(subset) == context.Request.RawUrl.Substring(1).Replace("/","."))
-                    {
-                         return fetchFromResource(assembly, s);
-                    }
-                    nameSpace = s;
+                    context.Response.ContentType = "text/html";
+                    return Utility.fetchForClient(assembly, homePage.Replace("/", "."));
                 }
                 context.Response.StatusCode = 404;
-                returned = fetchFromResource(assembly, nameSpace.Substring(0, nameSpace.IndexOf(".")) + ".View.404.html");
+                context.Response.ContentType = "text/html";
+                returned = Utility.fetchForClient(assembly, notFound.Replace("/", "."));
             }
-            return returned.ToString();
-        }
-        public static String fetchFromResource(Assembly assembly, String resourceName)
-        {
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
+            return returned;
         }
     }
 }

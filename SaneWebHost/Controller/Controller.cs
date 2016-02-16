@@ -1,5 +1,7 @@
 ﻿using SaneWeb.Resources.Attributes;
 using SaneWeb.Web;
+using SaneWebHost;
+using SaneWebHost.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,10 +14,19 @@ namespace SaneWeb.Controller
 {
     public static class Controller
     {
-        [Controller("~/test/")]
-        public static String test(HttpListenerContext context)
+        [Controller("~/add/")]
+        public static String test(HttpListenerContext context, String num, String num2)
         {
-            return "HEY!";
+            try
+            {
+                int numa = int.Parse(num);
+                int numb = int.Parse(num2);
+                return (numa + numb).ToString();
+            }
+            catch
+            {
+                return "Invalid number syntax!";
+            }
         }
     }
 }

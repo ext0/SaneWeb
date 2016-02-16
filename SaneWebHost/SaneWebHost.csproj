@@ -61,13 +61,25 @@
     <EmbeddedResource Include="View\Home.html" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\" />
+    <EmbeddedResource Include="View\CSS\bootstrap.min.css" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="View\404.html" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="View\Sample\Test.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="View\Images\bird.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ViewStructure.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="View\CSS\bootstrap-theme.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="View\JS\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

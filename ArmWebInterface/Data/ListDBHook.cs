@@ -38,8 +38,9 @@ namespace SaneWeb.Data
             openData = new TrackingList<T>();
         }
 
-        public TrackingList<T> getData()
+        public TrackingList<T> getData(bool allowCache)
         {
+            if ((allowCache) && (openData != null)) return openData;
             openData.Clear();
             using (SQLiteCommand command = new SQLiteCommand("SELECT * FROM " + tableName, dbConnection))
             {
