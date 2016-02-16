@@ -78,8 +78,9 @@
   <ItemGroup>
     <EmbeddedResource Include="View\CSS\bootstrap-theme.min.css" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="View\JS\" />
+    <EmbeddedResource Include="View\JS\bootstrap.min.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

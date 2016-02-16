@@ -30,8 +30,6 @@ namespace SaneWebHost
             ws.setShowPublicErrors(true);
             Console.WriteLine("Initialized!");
 
-            ws.setHomepage("SaneWebHost.View.Home.html");
-
             ws.addController(typeof(Controller));
             Console.WriteLine("Controller added!");
 

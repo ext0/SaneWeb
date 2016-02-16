@@ -17,7 +17,6 @@ namespace SaneWeb.Web
         private List<Type> controllers;
         private List<Type> models;
         private String databasePath;
-        private String homePage;
         private bool showPublicErrors;
         private XmlDocument viewStructure;
 
@@ -85,16 +84,6 @@ namespace SaneWeb.Web
             {
                 controllers.Remove(controller);
             }
-        }
-
-        public void setHomepage(String URI)
-        {
-            homePage = URI;
-        }
-
-        public String getHomepage()
-        {
-            return homePage;
         }
 
         public void run()
