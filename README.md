@@ -124,7 +124,7 @@ using Newtonsoft.Json;
 [Controller("~/addAlpaca/")]
 public static String test(HttpListenerContext context, String body, String name, String age, String description)
 {
-  List<Alpaca> alpacas = WebServer.alpacaDB.getData();
+  List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
   Alpaca alpaca = new Alpaca(name, age, description));
   alpacas.add(alpaca);
   WebServer.alpacaDB.update();
@@ -134,7 +134,7 @@ public static String test(HttpListenerContext context, String body, String name,
 [Controller("~/getAlpaca/")]
 public static String test(HttpListenerContext context, String body, String name)
 {
-  List<Alpaca> alpacas = WebServer.alpacaDB.getData();
+  List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
   foreach (Alpaca alpaca in alpacas)
   {
     if (alpaca.name.Equals(name))
@@ -148,7 +148,7 @@ public static String test(HttpListenerContext context, String body, String name)
 [Controller("~/increaseAge/")]
 public static String test(HttpListenerContext context, String body, String name)
 {
-  List<Alpaca> alpacas = WebServer.alpacaDB.getData();
+  List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
   bool flag = false;
   foreach (Alpaca alpaca in alpacas)
   {
