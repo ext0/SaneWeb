@@ -84,9 +84,6 @@
     <EmbeddedResource Include="View\CSS\bootstrap-theme.min.css" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="View\CSS\cover.css" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="View\JS\bootstrap.min.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
