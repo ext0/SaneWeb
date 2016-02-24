@@ -19,6 +19,11 @@ namespace SaneWeb.Data
         private FieldInfo idField;
         private TrackingList<T> openData;
 
+        public List<T> getUnderlyingData()
+        {
+            return openData.getBacking();
+        }
+
         public ListDBHook(SQLiteConnection dbConnection)
         {
             model = typeof(T);
@@ -71,9 +76,13 @@ namespace SaneWeb.Data
             {
                 foreach (T obj in newObjects)
                 {
-                    String query = "INSERT INTO " + tableName + " (id," + String.Join(",", properties.Select((x) => (x.attribute.column))) + ") VALUES(" + obj.getId() + "," + String.Join(",", properties.Select((x) => ("\"" + x.propertyInfo.GetValue(obj)) + "\"")) + ")";
+                    String query = "INSERT INTO " + tableName + " (id," + String.Join(",", properties.Select((x) => (x.attribute.column))) + ") VALUES(" + obj.getId() + "," + String.Join(",", properties.Select((x) => ("@" + x.propertyInfo.Name))) + ")";
                     using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))
                     {
+                        for (int j = 0; j < properties.Count; j++)
+                        {
+                            command.Parameters.AddWithValue("@" + properties[j].propertyInfo.Name, properties[j].propertyInfo.GetValue(obj));
+                        }
                         i += command.ExecuteNonQuery();
                     }
                 }
@@ -83,11 +92,15 @@ namespace SaneWeb.Data
                     List<String> updates = new List<String>();
                     foreach (AttributeProperty property in properties)
                     {
-                        updates.Add(property.attribute.column + "=\"" + property.propertyInfo.GetValue(obj) + "\"");
+                        updates.Add(property.attribute.column + "=@" + property.propertyInfo.GetValue(obj));
                     }
                     query += String.Join(",", updates) + " WHERE id=" + obj.getId();
                     using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))
                     {
+                        for (int j = 0; j < properties.Count; j++)
+                        {
+                            command.Parameters.AddWithValue("@" + properties[j].propertyInfo.Name, properties[j].propertyInfo.GetValue(obj));
+                        }
                         i += command.ExecuteNonQuery();
                     }
                 }

@@ -1,5 +1,31 @@
 ﻿
 <!DOCTYPE html>
+<style>
+    html, body {
+        margin: 0;
+        height: 100%;
+        position: relative;
+    }
+
+    .bgFixed {
+        position: absolute !important;
+        width: 100% !important;
+        height: 100% !important;
+        transition: opacity 5s !important;
+        top: 0;
+        left: 0;
+    }
+
+    .opaque {
+        opacity: 0.9;
+    }
+
+    .hiddenFixed {
+        opacity: 0 !important;
+        top: 0;
+        left: 0;
+    }
+</style>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -9,85 +35,113 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SaneWeb Sample Page</title>
+    <title>SaneWeb Board</title>
     <link href="../../CSS/bootstrap.min.css" rel="stylesheet">
     <link href="../../CSS/bootstrap-theme.min.css" rel="stylesheet">
 </head>
 
+
 <body role="document">
-
-    <!-- Fixed navbar -->
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="#">SaneWeb sample</a>
+    <div class="container">
+        <div class="row">
+            <div class="jumbotron opaque" style="position:relative; width:100%; z-index:4; padding-top:0px">
+                <h1 style="padding-top:30px">Message board!</h1>
+                <p>Send a message to have it appear on the board!</p>
             </div>
-            <div id="navbar" class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li class="active"><a href="#">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </div><!--/.nav-collapse -->
-        </div>
-    </nav>
-
-    <div class="container theme-showcase" role="main">
-
-        <!-- Main jumbotron for a primary marketing message or call to action -->
-        <div class="jumbotron">
-            <h1>SaneWeb Example</h1>
-            <p>This sample will show basic database access through a table.</p>
-        </div>
-
-        <div class="page-header">
-            <h1>Tables</h1>
         </div>
         <div class="row">
-            <div class="col-md-6">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Username</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>Mark</td>
-                            <td>Otto</td>
-                            <td>@mdo</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>Jacob</td>
-                            <td>Thornton</td>
-                            <td>@fat</td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>Larry</td>
-                            <td>the Bird</td>
-                            <td>@twitter</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="form-group opaque" style="position:relative; width:100%; z-index:4; top:20%;">
+                <label for="comment" style="color:white;">Comment:</label>
+                <textarea class="form-control" rows="1" id="comment"></textarea>
             </div>
+            <button type="button" id="post" class="btn btn-primary opaque" style="position:relative; width:100%; z-index:4; top:50%;">Post</button>
         </div>
-    </div> <!-- /container -->
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
+        <div class="row">
+            <ul class="list-group opaque" id="messages" style="position:relative; width:100%; z-index:4; padding-top:10px; height:60vh; overflow-y:scroll;">
+                <li class="list-group-item list-group-item-success">Loaded DB</li>
+            </ul>
+        </div>
+    </div>
+    <div class="bgFixed">
+
+    </div>
+    <div class="bgFixed hiddenFixed">
+
+    </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="../../JS/bootstrap.min.js"></script>
+    <script>
+        var messages = [];
+        var users = {};
+        var j = 0;
+        $("#messages").empty();
+        function request() {
+            $.ajax({
+                url: 'http://saneweb.crackedsidewalks.com/getMessages/',
+                type: 'GET',
+                success: function (data) {
+                    if ((messages.length == data.length) || (data.length == 0)) {
+                        setTimeout(request(), 500);
+                        return;
+                    }
+                    var length = messages.length;
+                    messages = data.slice();
+                    data.splice(0, length);
+                    for (var i = 0; i < data.length; i++) {
+                        if (j % 2 == 0) {
+                            $("#messages").prepend('<li class="list-group-item list-group-item-success"><b>[' + data[i].ip + ']</b> ' + data[i].data + '</li>');
+                        } else {
+                            $("#messages").prepend('<li class="list-group-item list-group-item-info"><b>[' + data[i].ip + ']</b> ' + data[i].data + '</li>');
+                        }
+                        j++;
+                    }
+                    request();
+                },
+                cache: false
+            })
+        }
+        request();
+    </script>
+    <script>
+        $().ready(function () {
+            function sendMessage() {
+                $.ajax({
+                    url: 'http://saneweb.crackedsidewalks.com/addMessage/?data=' + encodeURIComponent($('#comment').val()),
+                    type: 'GET',
+                })
+                document.getElementById('comment').value = ""
+            }
+            $("#comment").keydown(function (event) {
+                if (event.which == 13) {
+                    sendMessage();
+                    return false;
+                }
+            });
+            $("#post").click(sendMessage);
+            function newGradient() {
+                var c1 = {
+                    r: Math.floor(Math.random() * 255),
+                    g: Math.floor(Math.random() * 255),
+                    b: Math.floor(Math.random() * 255)
+                };
+                var c2 = {
+                    r: Math.floor(Math.random() * 255),
+                    g: Math.floor(Math.random() * 255),
+                    b: Math.floor(Math.random() * 255)
+                };
+                c1.rgb = 'rgb(' + c1.r + ',' + c1.g + ',' + c1.b + ')';
+                c2.rgb = 'rgb(' + c2.r + ',' + c2.g + ',' + c2.b + ')';
+                return 'radial-gradient(at top left, ' + c1.rgb + ', ' + c2.rgb + ')';
+            }
+
+            function rollBg() {
+                $('.bgFixed.hiddenFixed').css('background', newGradient());
+                $('.bgFixed').toggleClass('hiddenFixed');
+            }
+
+            rollBg();
+            setInterval(rollBg, 5000);
+        })
+    </script>
 </body>
 </html>

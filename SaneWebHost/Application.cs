@@ -16,8 +16,6 @@ namespace SaneWebHost
 {
     public class WebServer
     {
-        public static ListDBHook<User> userDBContext;
-
         static void Main(string[] args)
         {
             Stopwatch stopwatch = new Stopwatch();
@@ -33,10 +31,11 @@ namespace SaneWebHost
             ws.addController(typeof(Controller));
             Console.WriteLine("Controller added!");
 
-            userDBContext = ws.loadModel<User>();
+            ListDBHook<Message> userDBContext = ws.loadModel<Message>();
+            DataStore.addGlobalVar("messageDB", userDBContext);
             Console.WriteLine("Model loaded!");
 
-            TrackingList<User> users = userDBContext.getData(false);
+            TrackingList<Message> users = userDBContext.getData(false);
             Console.WriteLine("Data fetched!");
 
             int changed = userDBContext.update();

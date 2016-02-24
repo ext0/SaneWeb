@@ -13,6 +13,11 @@ namespace SaneWeb.Data
         private List<T> added = new List<T>();
         private List<T> removed = new List<T>();
         private List<T> modified = new List<T>();
+        public List<T> getBacking()
+        {
+            return backing;
+        }
+
         public T this[int index]
         {
             get

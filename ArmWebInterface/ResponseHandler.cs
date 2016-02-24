@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using SaneWeb.LuaEngine;
 using System.Xml;
 
 namespace SaneWeb
@@ -108,6 +109,7 @@ namespace SaneWeb
                     if (request.Equals(node.Attributes["path"].Value.Replace("/", ".")))
                     {
                         context.Response.ContentType = node.Attributes["content-type"].Value;
+                        //LuaProcesser processor = new LuaProcesser(data);
                         return Utility.fetchForClient(assembly, node.Attributes["location"].Value);
                     }
                     if (node.Attributes["situational"] != null)

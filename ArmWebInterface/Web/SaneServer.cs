@@ -68,10 +68,10 @@ namespace SaneWeb.Web
                 if (!DBReferences.databaseOpen(databasePath))
                 {
                     DBReferences.openDatabase(databasePath);
-                    if (!DBReferences.tableExists<T>(databasePath))
-                    {
-                        DBReferences.createTable<T>(databasePath);
-                    }
+                }
+                if (!DBReferences.tableExists<T>(databasePath))
+                {
+                    DBReferences.createTable<T>(databasePath);
                 }
                 models.Add(model);
             }

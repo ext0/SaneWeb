@@ -96,13 +96,16 @@ namespace SaneWeb.Data
         public static bool tableExists<T>(String db)
         {
             TableAttribute attribute = getTableInfoFrom<T>();
-            using (SQLiteDataReader reader = new SQLiteCommand("PRAGMA table_info(\"" + attribute.tableName + "\")", getDatabase(db)).ExecuteReader())
+            using (SQLiteCommand command = new SQLiteCommand("PRAGMA table_info(" + attribute.tableName + ")", getDatabase(db)))
             {
-                if (reader.Read())
+                using (SQLiteDataReader reader = command.ExecuteReader())
                 {
-                    return true;
+                    if (reader.Read())
+                    {
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
             }
         }
 
@@ -112,8 +115,11 @@ namespace SaneWeb.Data
         }
         public static void dropTable(String db, String table)
         {
-            new SQLiteCommand("DROP TABLE '" + table + "'", getDatabase(db)).ExecuteNonQuery();
+            SQLiteCommand command = new SQLiteCommand("DROP TABLE " + table, getDatabase(db));
+            command.ExecuteNonQuery();
         }
+
+        //doesn't require SQL parameters, as this is ONLY called upon loading new models with custom metadata into the database, which is never visible to public
         public static void createTable<T>(String db) where T : Model<T>
         {
             TableAttribute attribute = getTableInfoFrom<T>();
@@ -124,7 +130,7 @@ namespace SaneWeb.Data
             foreach (PropertyInfo property in typeof(T).GetProperties())
             {
                 DatabaseValueAttribute valueAttribute = property.GetCustomAttribute<DatabaseValueAttribute>();
-                if (valueAttribute == null) continue; //user messed up
+                if (valueAttribute == null) continue;
                 columns.Add(valueAttribute.column + " VARCHAR(" + valueAttribute.maxLength + ")");
             }
             SQLString += String.Join(",", columns) + ")";

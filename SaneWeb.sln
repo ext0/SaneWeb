@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaneWeb", "ArmWebInterface\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaneWebHost", "SaneWebHost\SaneWebHost.csproj", "{57688FCE-3687-45AE-9E40-F48827A87645}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrispStatsDB", "CrispStatsDB\CrispStatsDB.csproj", "{2E5C96B9-C815-4C4F-873D-91BF711C8AC1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,14 @@ Global
 		{57688FCE-3687-45AE-9E40-F48827A87645}.Release|Any CPU.Build.0 = Release|Any CPU
 		{57688FCE-3687-45AE-9E40-F48827A87645}.Release|x64.ActiveCfg = Release|Any CPU
 		{57688FCE-3687-45AE-9E40-F48827A87645}.Release|x64.Build.0 = Release|Any CPU
+		{2E5C96B9-C815-4C4F-873D-91BF711C8AC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E5C96B9-C815-4C4F-873D-91BF711C8AC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E5C96B9-C815-4C4F-873D-91BF711C8AC1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2E5C96B9-C815-4C4F-873D-91BF711C8AC1}.Debug|x64.Build.0 = Debug|Any CPU
+		{2E5C96B9-C815-4C4F-873D-91BF711C8AC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E5C96B9-C815-4C4F-873D-91BF711C8AC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E5C96B9-C815-4C4F-873D-91BF711C8AC1}.Release|x64.ActiveCfg = Release|Any CPU
+		{2E5C96B9-C815-4C4F-873D-91BF711C8AC1}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
