@@ -32,38 +32,45 @@ using SaneWeb.Data;
 using SaneWeb.Resources;
 using SaneWeb.Web;
 
-static void Main(String[] args)
+namespace SaneWebHost //this will be implicit for the rest of the examples
 {
-  SaneServer ws = new SaneServer(
-    (Utility.fetchFromResource(true, Assembly.GetExecutingAssembly(), "SaneWebHost.Resources.ViewStructure.xml")),
-    "Database\\SaneDB.db",
-    "http://+:80/");
-  ws.setHomepage("SaneWebHost.View.Home.html");
-  ws.run();
-  Console.WriteLine("Webserver running! Press any key to stop...");
-  Console.ReadKey();
-  ws.stop();
+  public static class WebServer
+  {
+    static void Main(String[] args)
+    {
+      SaneServer ws = new SaneServer(
+        (Utility.fetchFromResource(true, Assembly.GetExecutingAssembly(), "SaneWebHost.Resources.ViewStructure.xml")),
+        "Database\\SaneDB.db",
+        "http://+:80/");
+      ws.run();
+      Console.WriteLine("Webserver running! Press any key to stop...");
+      Console.ReadKey();
+      ws.stop();
+    }
+  }
 }
 ```
-
 <h2>API controller</h2>
 SaneWeb uses a simple API controller that allows for simple creation of new API calls without worrying about backend control, while giving you access to low-end HTTP controls at the same time. You can choose to ignore the underlying HTTP layer (handling status codes, etc) if you would just like a quick & easy solution, but it's there if necessary.
 Each API call must be declared in a static class, with methods defined with the `Controller` attribute along with the URL to where the API will be called from. For example, the following API call with be called through `domain/add/?num1=0&num2=0` and also pass the body (if supplied from a POST request) to the method. Then, the data returned from this request will be delivered to the client.
 ```C#
 using SaneWeb.Resources.Attributes;
 
-[Controller("~/add/")]
-public static String test(HttpListenerContext context, String body, String num, String num2)
+public static class Controller
 {
-  try
+  [Controller("~/add/")]
+  public static String test(HttpListenerContext context, String body, String num, String num2)
   {
-    int numa = int.Parse(num);
-    int numb = int.Parse(num2);
-    return (numa + numb).ToString();
-  }
-  catch
-  {
-    return "Invalid number syntax!";
+    try
+    {
+      int numa = int.Parse(num);
+      int numb = int.Parse(num2);
+      return (numa + numb).ToString();
+    }
+    catch
+    {
+      return "Invalid number syntax!";
+    }
   }
 }
 ```
@@ -77,7 +84,7 @@ using SaneWeb.Resources.Attributes;
 
 [Table("Alpacas")]
 public class Alpaca : Model<Alpaca>
-  {
+{
   [DatabaseValue("name", 64)]
   public String name { get; set; }
 
@@ -100,13 +107,13 @@ public class Alpaca : Model<Alpaca>
   }
 }
 ```
-So, here we have the definition for `Alpaca`, which contains the `TableAttribute` that points to the table `Alpacas`. This table will be automatically created/opened when you load the model. You may also notice that the Model implements `Model<Alpaca`. Note that every field is prefixed with the DatabaseValue attribute. In SaneWeb, all values in databases are stored as Strings. While this is a limitation created by maintaining simplicity and ease of access, it doesn't need to limit what kind of data you would like to store. Objects can be stored in databases if serialized to JSON, and numbers can simply be parsed upon being retreived from the database. The DatabaseValue attribute has two parameters, the column name (arbitrary, this is handled by the SaneWeb backend) and the max length of the value. Now, we have two constructors; however, only one is necessary. Every `Model` object must have a constructor with no parameters that extends the `base` constructor. You can add constructors more if you are going to be creating objects yourself and need to input values without reflection.
+So, here we have the definition for `Alpaca`, which contains the `TableAttribute` that points to the table `Alpacas`. This table will be automatically created/opened when you load the model. You may also notice that the Model implements `Model<Alpaca>`. Note that every field is prefixed with the DatabaseValue attribute. In SaneWeb, all values in databases are stored as Strings. While this is a limitation created by maintaining simplicity and ease of access, it doesn't need to limit what kind of data you would like to store. Objects can be stored in databases if serialized to JSON, and numbers can simply be parsed upon being retreived from the database. The DatabaseValue attribute has two parameters, the column name (arbitrary, this is handled by the SaneWeb backend) and the max length of the value. Now, we have two constructors; however, only one is necessary. Every `Model` object must have a constructor with no parameters that extends the `base` constructor. You can add constructors more if you are going to be creating objects yourself and need to input values without reflection.
 Now that we have our type declaration, we need to add it to the server! We can perform this by loading the model with the following code.
 ```C#
 SaneServer ws = new SaneServer(...);
 ListDBHook<Alpaca> db = ws.loadModel<Alpaca>();
 ```
-What this gives us is an interace for us to load and update data in the database. There are two methods in the `ListDBHook`, `getData(bool)` and `update()`. Calling `getData(bool)` will return a list of objects stored in the database, or an empty list if the table is empty. The argument determines whether or not to fetch new data from the database or to use the cached data. As a rule of thumb, use `getData(true)` when you load the table for the first time in a session, and `getData(false)` for existing data. Let's add some objects to the database via Models! The following code will add a new `Alpaca` to the database.
+What this gives us is an interace for us to load and update data in the database. There are two methods in the `ListDBHook<Alpaca>`, `getData(bool)` and `update()`. Calling `getData(bool)` will return a list of objects stored in the database, or an empty list if the table is empty. The argument determines whether or not to fetch new data from the database or to use the cached data. As a rule of thumb, use `getData(true)` when you load the table for the first time in a session, and `getData(false)` for existing data. Let's add some objects to the database via Models! The following code will add a new `Alpaca` to the database.
 ```C# 
 ListDBHook<Alpaca> db = ws.loadModel<Alpaca>();
 List<Alpaca> alpacas = db.getData(true);
@@ -121,55 +128,82 @@ The following `Controller` code will give some basic functionality to your web a
 using SaneWeb.Resources.Attributes;
 using Newtonsoft.Json;
 
-[Controller("~/addAlpaca/")]
-public static String test(HttpListenerContext context, String body, String name, String age, String description)
+public static class Controller
 {
-  List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
-  Alpaca alpaca = new Alpaca(name, age, description));
-  alpacas.add(alpaca);
-  WebServer.alpacaDB.update();
-  return JsonConvert.SerializeObject(alpaca);
-}
-
-[Controller("~/getAlpaca/")]
-public static String test(HttpListenerContext context, String body, String name)
-{
-  List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
-  foreach (Alpaca alpaca in alpacas)
+  [Controller("~/addAlpaca/")]
+  public static String test(HttpListenerContext context, String body, String name, String age, String description)
   {
-    if (alpaca.name.Equals(name))
-    {
-      return JsonConvert.SerializeObject(alpaca);
-    }
-  }
-  return "No alpaca under that name!";
-}
-
-[Controller("~/increaseAge/")]
-public static String test(HttpListenerContext context, String body, String name)
-{
-  List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
-  bool flag = false;
-  foreach (Alpaca alpaca in alpacas)
-  {
-    if (alpaca.name.Equals(name))
-    {
-      alpaca.age++;
-      flag = true;
-      break;
-    }
-  }
-  if (flag)
-  {
+    List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
+    Alpaca alpaca = new Alpaca(name, age, description));
+    alpacas.add(alpaca);
     WebServer.alpacaDB.update();
-    return "Increased age successfully!";
+    return JsonConvert.SerializeObject(alpaca);
   }
-  else
+  
+  [Controller("~/getAlpaca/")]
+  public static String test(HttpListenerContext context, String body, String name)
   {
+    List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
+    foreach (Alpaca alpaca in alpacas)
+    {
+      if (alpaca.name.Equals(name))
+      {
+        return JsonConvert.SerializeObject(alpaca);
+      }
+    }
     return "No alpaca under that name!";
+  }
+  
+  [Controller("~/increaseAge/")]
+  public static String test(HttpListenerContext context, String body, String name)
+  {
+    List<Alpaca> alpacas = WebServer.alpacaDB.getData(false);
+    bool flag = false;
+    foreach (Alpaca alpaca in alpacas)
+    {
+      if (alpaca.name.Equals(name))
+      {
+        alpaca.age++;
+        flag = true;
+        break;
+      }
+    }
+    if (flag)
+    {
+      WebServer.alpacaDB.update();
+      return "Increased age successfully!";
+    }
+    else
+    {
+      return "No alpaca under that name!";
+    }
   }
 }
 ```
+So, now we have a controller, a model, and a webserver. To complete the example, all we have to do is hook them in and run! The following code will hook in the controller and load the model into SaneServer.
+```C#
+using SaneWeb.Controller;
+using SaneWeb.Data;
+using SaneWeb.Resources;
+using SaneWeb.Web;
 
-
-
+public static class WebServer
+{
+  public static ListDBHook<Alpaca> alpacaDB;
+  
+  static void Main(String[] args)
+  {
+    SaneServer ws = new SaneServer(
+      (Utility.fetchFromResource(true, Assembly.GetExecutingAssembly(), "SaneWebHost.Resources.ViewStructure.xml")),
+      "Database\\SaneDB.db",
+      "http://+:80/");
+    alpacaDB = ws.loadModel<Alpaca>();
+    ws.addController(typeof(Controller));
+    ws.run();
+    Console.WriteLine("Webserver running! Press any key to stop...");
+    Console.ReadKey();
+    ws.stop();
+  }
+}
+```
+Now, running the project will load up a web server! Write up a quick HTML page and some JavaScript to query the API with AJAX requests and you're good to go!
