@@ -65,7 +65,7 @@ namespace SaneWeb.LuaEngine
                 }
                 return output;
             }
-            catch(Exception e)
+            catch
             {
                 return String.Empty;
             }

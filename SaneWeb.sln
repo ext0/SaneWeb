@@ -5,7 +5,9 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaneWeb", "ArmWebInterface\SaneWeb.csproj", "{2D17A429-5831-4569-9390-F2005E0B1CD4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaneWebHost", "SaneWebHost\SaneWebHost.csproj", "{57688FCE-3687-45AE-9E40-F48827A87645}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSample", "SaneWebHost\MessageSample.csproj", "{57688FCE-3687-45AE-9E40-F48827A87645}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HACWebSample", "HACWeb\HACWebSample.csproj", "{3B89D815-7993-4975-A56E-829CEFDFA074}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +33,14 @@ Global
 		{57688FCE-3687-45AE-9E40-F48827A87645}.Release|Any CPU.Build.0 = Release|Any CPU
 		{57688FCE-3687-45AE-9E40-F48827A87645}.Release|x64.ActiveCfg = Release|Any CPU
 		{57688FCE-3687-45AE-9E40-F48827A87645}.Release|x64.Build.0 = Release|Any CPU
+		{3B89D815-7993-4975-A56E-829CEFDFA074}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B89D815-7993-4975-A56E-829CEFDFA074}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B89D815-7993-4975-A56E-829CEFDFA074}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3B89D815-7993-4975-A56E-829CEFDFA074}.Debug|x64.Build.0 = Debug|Any CPU
+		{3B89D815-7993-4975-A56E-829CEFDFA074}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B89D815-7993-4975-A56E-829CEFDFA074}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B89D815-7993-4975-A56E-829CEFDFA074}.Release|x64.ActiveCfg = Release|Any CPU
+		{3B89D815-7993-4975-A56E-829CEFDFA074}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

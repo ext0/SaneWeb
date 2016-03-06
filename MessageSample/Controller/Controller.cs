@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using SaneWeb.Data;
+﻿using SaneWeb.Data;
+using SaneWeb.Resources;
 using SaneWeb.Resources.Attributes;
 using SaneWeb.Web;
 using SaneWebHost;
@@ -17,28 +17,13 @@ namespace SaneWeb.Controller
 {
     public static class Controller
     {
-        [Controller("~/add/")]
-        public static String test(HttpListenerContext context, String body, String num, String num2)
-        {
-            Console.WriteLine(body);
-            try
-            {
-                int numa = int.Parse(num);
-                int numb = int.Parse(num2);
-                return (numa + numb).ToString();
-            }
-            catch
-            {
-                return "Invalid number syntax!";
-            }
-        }
         [Controller("~/getMessages/")]
         public static String getMessages(HttpListenerContext context, String body)
         {
             try
             {
                 ListDBHook<Message> messageDB = (ListDBHook<Message>)DataStore.getGlobalVar("messageDB");
-                return JsonConvert.SerializeObject(messageDB.getUnderlyingData());
+                return Utility.serializeObjectToJSON(messageDB.getUnderlyingData());
             }
             catch
             {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,6 +29,16 @@ namespace SaneWeb.Resources
                 result.Append(chars[b % (chars.Length)]);
             }
             return result.ToString();
+        }
+
+        public static String serializeObjectToJSON(Object obj)
+        {
+            return JsonConvert.SerializeObject(obj);
+        }
+
+        public static Object deserializeJSONToObject(String json)
+        {
+            return JsonConvert.DeserializeObject(json);
         }
 
         public static int randomNumber()
