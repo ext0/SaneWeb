@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<view>
+  <resource path="Home.html" location="SaneWebHost.View.Home.html" content-type="text/html" situational="homepage"></resource>
+  <resource path="CSS/bootstrap.min.css" location="SaneWebHost.View.CSS.bootstrap.min.css" content-type="text/css"></resource>
+  <resource path="CSS/bootstrap-theme.min.css" location="SaneWebHost.View.CSS.bootstrap-theme.min.css" content-type="text/css"></resource>
+  <resource path="404.html" location="SaneWebHost.View.404.html" content-type="text/html" situational="404"></resource>
+</view>
