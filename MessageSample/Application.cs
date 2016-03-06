@@ -1,8 +1,7 @@
-﻿using SaneWeb.Controller;
-using SaneWeb.Data;
+﻿using SaneWeb.Data;
 using SaneWeb.Resources;
 using SaneWeb.Web;
-using SaneWebHost.Models;
+using MessageSample.Models;
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SaneWebHost
+namespace MessageSample
 {
     public class WebServer
     {
@@ -22,13 +21,13 @@ namespace SaneWebHost
             stopwatch.Start();
 
             SaneServer ws = new SaneServer(
-                (Utility.fetchFromResource(true, Assembly.GetExecutingAssembly(), "SaneWebHost.Resources.ViewStructure.xml")),
+                (Utility.fetchFromResource(true, Assembly.GetExecutingAssembly(), "MessageSample.Resources.ViewStructure.xml")),
                 "Database\\SaneDB.db",
                 "http://+:80/");
             ws.setShowPublicErrors(true);
             Console.WriteLine("Initialized!");
 
-            ws.addController(typeof(Controller));
+            ws.addController(typeof(Controller.Controller));
             Console.WriteLine("Controller added!");
 
             ListDBHook<Message> userDBContext = ws.loadModel<Message>();

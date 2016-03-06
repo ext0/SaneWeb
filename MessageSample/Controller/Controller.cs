@@ -2,8 +2,8 @@
 using SaneWeb.Resources;
 using SaneWeb.Resources.Attributes;
 using SaneWeb.Web;
-using SaneWebHost;
-using SaneWebHost.Models;
+using MessageSample;
+using MessageSample.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace SaneWeb.Controller
+namespace MessageSample.Controller
 {
     public static class Controller
     {

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SaneWebHost.Models
+namespace MessageSample.Models
 {
     [Table("Messages")]
     public class Message : Model<Message>

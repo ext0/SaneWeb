@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HACWeb
 {
-    class Program
+    class Application
     {
         static void Main(string[] args)
         {

@@ -7,8 +7,8 @@
     <ProjectGuid>{57688FCE-3687-45AE-9E40-F48827A87645}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SaneWebHost</RootNamespace>
-    <AssemblyName>SaneWebHost</AssemblyName>
+    <RootNamespace>MessageSample</RootNamespace>
+    <AssemblyName>MessageSample</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
