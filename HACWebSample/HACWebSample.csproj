@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="RRISD-HAC-Access">
+      <HintPath>..\..\..\..\Documents\Visual Studio 2015\Projects\RRISD-HAC-Access\RRISD-HAC-Access\bin\Debug\RRISD-HAC-Access.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />

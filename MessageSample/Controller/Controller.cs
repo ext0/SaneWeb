@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace MessageSample.Controller
+namespace MessageSample.Controllers
 {
     public static class Controller
     {

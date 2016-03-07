@@ -2,6 +2,7 @@
 using SaneWeb.Resources;
 using SaneWeb.Web;
 using MessageSample.Models;
+using MessageSample.Controllers;
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace MessageSample
             ws.setShowPublicErrors(true);
             Console.WriteLine("Initialized!");
 
-            ws.addController(typeof(Controller.Controller));
+            ws.addController(typeof(Controller));
             Console.WriteLine("Controller added!");
 
             ListDBHook<Message> userDBContext = ws.loadModel<Message>();

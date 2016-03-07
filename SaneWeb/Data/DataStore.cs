@@ -24,5 +24,10 @@ namespace SaneWeb.Data
         {
             return globalVars.ContainsKey(key);
         }
+
+        public static void removeGlobalVar(String key)
+        {
+            globalVars.Remove(key);
+        }
     }
 }
