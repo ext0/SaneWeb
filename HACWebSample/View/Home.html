@@ -23,7 +23,7 @@
         }
         function request() {
             $.ajax({
-                url: 'http://saneweb.crackedsidewalks.com/getData/?username=kobrien',
+                url: 'http://saneweb.crackedsidewalks.com/getData/?username=', //username goes here
                 type: 'GET',
                 success: function (data) {
                     $.each(data, function (key, value) {
