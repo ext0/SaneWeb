@@ -1,6 +1,7 @@
 ﻿using SaneWeb.Data;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -30,6 +31,7 @@ namespace SaneWeb.Web
             _responderMethod = ResponseHandler.handleResponse;
             controllers = new List<Type>();
             models = new List<Type>();
+            Directory.CreateDirectory(databasePath.Substring(0, databasePath.LastIndexOf('\\')));
             this.databasePath = databasePath;
             this.showPublicErrors = false;
             viewStructure = new XmlDocument();

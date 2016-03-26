@@ -22,10 +22,6 @@ namespace SaneWeb
     {
         public static byte[] handleResponse(SaneServer sender, HttpListenerContext context, List<Type> controllers)
         {
-            if (context.Response.Cookies.Count == 0)
-            {
-                context.Response.AddHeader("Set-Cookie", "session=" + Utility.trustedRandomString(32));
-            }
             List<HttpArgument> arguments = new List<HttpArgument>();
             MethodInfo[][] info = controllers.Select((g) => (g.GetMethods().Where((x) => (x.GetCustomAttribute<ControllerAttribute>() != null)).ToArray())).ToArray();
             List<MethodInfo> methods = new List<MethodInfo>();
@@ -42,6 +38,7 @@ namespace SaneWeb
             }
             byte[] returned = new byte[] { };
             bool flag = false;
+            LuaProcesser processor;
             foreach (MethodInfo method in methods)
             {
                 ControllerAttribute attribute = method.GetCustomAttribute<ControllerAttribute>();
@@ -109,8 +106,8 @@ namespace SaneWeb
                     if (request.Equals(node.Attributes["path"].Value.Replace("/", ".")))
                     {
                         context.Response.ContentType = node.Attributes["content-type"].Value;
-                        //LuaProcesser processor = new LuaProcesser(data);
-                        return Utility.fetchForClient(assembly, node.Attributes["location"].Value);
+                        processor = new LuaProcesser(context, Utility.fetchForClient(assembly, node.Attributes["location"].Value));
+                        return processor.processedHTML;
                     }
                     if (node.Attributes["situational"] != null)
                     {
@@ -128,11 +125,13 @@ namespace SaneWeb
                 if (context.Request.RawUrl.Trim().Length <= 1)
                 {
                     context.Response.ContentType = "text/html";
-                    return Utility.fetchForClient(assembly, homePage.Replace("/", "."));
+                    processor = new LuaProcesser(context, Utility.fetchForClient(assembly, homePage.Replace("/", ".")));
+                    return processor.processedHTML;
                 }
                 context.Response.StatusCode = 404;
                 context.Response.ContentType = "text/html";
-                returned = Utility.fetchForClient(assembly, notFound.Replace("/", "."));
+                processor = new LuaProcesser(context, Utility.fetchForClient(assembly, notFound.Replace("/", ".")));
+                return processor.processedHTML;
             }
             return returned;
         }

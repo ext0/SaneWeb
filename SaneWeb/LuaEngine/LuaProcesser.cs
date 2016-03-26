@@ -6,13 +6,37 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using DynamicLua;
 using SaneWeb.Data;
+using System.Reflection;
+using System.Net;
+using System.Diagnostics;
 
 namespace SaneWeb.LuaEngine
 {
+    public class LuaObjWrapper<T>
+    {
+        public String identifier { get; set; }
+        private T obj { get; set; }
+        public LuaObjWrapper(String identifier, T obj)
+        {
+            this.identifier = identifier;
+            this.obj = obj;
+        }
+        public Object getValue(String varName)
+        {
+            foreach (PropertyInfo property in obj.GetType().GetProperties())
+            {
+                if (property.Name.Equals(varName))
+                {
+                    return property.GetValue(obj);
+                }
+            }
+            return null;
+        }
+    }
     public class LuaProcesser
     {
         private String processedHTMLBacking;
-        private Dictionary<HtmlNode, String> dynamicContent;
+        private HttpListenerContext context;
         public byte[] processedHTML
         {
             get
@@ -27,26 +51,35 @@ namespace SaneWeb.LuaEngine
         }
         private bool processed { get; set; }
 
-        public LuaProcesser(byte[] data)
+        public LuaProcesser(HttpListenerContext context, byte[] data)
         {
+            this.context = context;
+            Dictionary<HtmlNode, String> dynamicContent = new Dictionary<HtmlNode, String>();
             processedHTMLBacking = Encoding.UTF8.GetString(data);
             HtmlDocument document = new HtmlDocument();
             document.LoadHtml(processedHTMLBacking);
-            HtmlNodeCollection nodes = document.DocumentNode.SelectNodes("//lua");
-            if (nodes.Count == 0)
+            if (document.DocumentNode == null)
             {
+                processedHTMLBacking = document.DocumentNode.OuterHtml;
+                processed = true;
                 return;
             }
-            this.dynamicContent = new Dictionary<HtmlNode, String>();
+            HtmlNodeCollection nodes = document.DocumentNode.SelectNodes("//lua");
+            if (nodes == null || nodes.Count == 0)
+            {
+                processedHTMLBacking = document.DocumentNode.OuterHtml;
+                processed = true;
+                return;
+            }
             foreach (HtmlNode node in nodes)
             {
                 dynamicContent.Add(node, executeLua(node, node.InnerText));
             }
             while (nodes.Count > 0)
             {
-                HtmlNode current = nodes[0];
-                current.InnerHtml = dynamicContent[current];
-                nodes.Remove(current);
+                HtmlNode parent = nodes[0].ParentNode;
+                parent.ReplaceChild(HtmlNode.CreateNode(dynamicContent[nodes[0]]), nodes[0]);
+                nodes.RemoveAt(0);
             }
             processedHTMLBacking = document.DocumentNode.OuterHtml;
             processed = true;
@@ -59,15 +92,45 @@ namespace SaneWeb.LuaEngine
                 String output = "";
                 using (dynamic luaEngine = new DynamicLua.DynamicLua())
                 {
-                    luaEngine.show = new Action<String>((data) => { output += data; });
-                    luaEngine.loadData = new Func<String, Object>((data) => { return DataStore.getGlobalVar(data); });
+                    luaEngine.cload = new Func<String, String>((cookie) =>
+                    {
+                        if (context != null)
+                        {
+                            Cookie ck = context.Request.Cookies[cookie];
+                            if (ck != null)
+                            {
+                                return ck.Value;
+                            }
+                        }
+                        return "";
+                    });
+                    luaEngine.eload = new Func<String, String, String, String>((cookie, name, var) =>
+                    {
+                        List<LuaObjWrapper<Object>> wrappers = DataStore.getCookieEntries(cookie);
+                        if (wrappers == null)
+                        {
+                            return "";
+                        }
+                        foreach (LuaObjWrapper<Object> wrapper in wrappers)
+                        {
+                            if (wrapper.identifier.Equals(name))
+                            {
+                                return wrapper.getValue(var).ToString();
+                            }
+                        }
+                        return "";
+                    });
+                    luaEngine.show = new Action<String>((data) =>
+                    {
+                        output += data;
+                    });
                     luaEngine(lua);
                 }
                 return output;
             }
-            catch
+            catch (Exception e)
             {
-                return String.Empty;
+                return e.Message;
             }
         }
     }
