@@ -54,6 +54,11 @@ namespace SaneWeb.Data
             return globalVars[key];
         }
 
+        public static IEnumerable<Object> getGlobalVars()
+        {
+            return globalVars.Values;
+        }
+
         public static bool varExists(String key)
         {
             return globalVars.ContainsKey(key);

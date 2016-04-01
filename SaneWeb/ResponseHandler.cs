@@ -106,8 +106,15 @@ namespace SaneWeb
                     if (request.Equals(node.Attributes["path"].Value.Replace("/", ".")))
                     {
                         context.Response.ContentType = node.Attributes["content-type"].Value;
-                        processor = new LuaProcesser(context, Utility.fetchForClient(assembly, node.Attributes["location"].Value));
-                        return processor.processedHTML;
+                        if (node.Attributes["lua"] != null && node.Attributes["lua"].Value.Equals("true"))
+                        {
+                            processor = new LuaProcesser(context, Utility.fetchForClient(assembly, node.Attributes["location"].Value));
+                            return processor.processedHTML;
+                        }
+                        else
+                        {
+                            return Utility.fetchForClient(assembly, node.Attributes["location"].Value);
+                        }
                     }
                     if (node.Attributes["situational"] != null)
                     {

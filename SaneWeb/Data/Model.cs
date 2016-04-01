@@ -28,7 +28,7 @@ namespace SaneWeb.Data
                 id = Utility.randomNumber();
             }
             this.id = id;
-       }
+        }
 
         public int getId()
         {

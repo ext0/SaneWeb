@@ -1,4 +1,7 @@
-﻿using MessageSample.Models;
+﻿using SaneWeb.Data;
+using SaneWeb.Resources;
+using SaneWeb.Web;
+using MessageSample.Models;
 using MessageSample.Controllers;
 
 using System;
@@ -8,9 +11,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using SaneWeb.Web;
-using SaneWeb.Data;
-using SaneWeb.Resources;
 
 namespace MessageSample
 {

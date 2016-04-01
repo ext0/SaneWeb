@@ -18,6 +18,7 @@ namespace SaneWeb.Data
         private List<AttributeProperty> properties;
         private FieldInfo idField;
         private TrackingList<T> openData;
+        public Type declaredType { get { return model; } }
 
         public List<T> getUnderlyingData()
         {
@@ -92,7 +93,7 @@ namespace SaneWeb.Data
                     List<String> updates = new List<String>();
                     foreach (AttributeProperty property in properties)
                     {
-                        updates.Add(property.attribute.column + "=@" + property.propertyInfo.GetValue(obj));
+                        updates.Add(property.attribute.column + "=@" + property.propertyInfo.Name);
                     }
                     query += String.Join(",", updates) + " WHERE id=" + obj.getId();
                     using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))

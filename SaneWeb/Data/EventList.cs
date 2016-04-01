@@ -32,7 +32,7 @@ namespace SaneWeb.Data
                 backing[index] = value;
             }
         }
-        
+
         public List<T> getAdded()
         {
             return added;

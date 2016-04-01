@@ -78,7 +78,7 @@ namespace SaneWeb.LuaEngine
             while (nodes.Count > 0)
             {
                 HtmlNode parent = nodes[0].ParentNode;
-                parent.ReplaceChild(HtmlNode.CreateNode(dynamicContent[nodes[0]]), nodes[0]);
+                parent.ReplaceChild(HtmlNode.CreateNode(dynamicContent[nodes[0]].Trim()), nodes[0]);
                 nodes.RemoveAt(0);
             }
             processedHTMLBacking = document.DocumentNode.OuterHtml;

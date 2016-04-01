@@ -53,6 +53,30 @@ namespace SaneWeb.Resources
             return Math.Abs(BitConverter.ToInt32(data, 0));
         }
 
+        public static int randomNumber(int minValue, int maxValue)
+        {
+            using (RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider())
+            {
+                byte[] intBuffer = new byte[32];
+                if (minValue > maxValue)
+                    throw new ArgumentOutOfRangeException("minValue");
+                if (minValue == maxValue) return minValue;
+                long diff = maxValue - minValue;
+                while (true)
+                {
+                    crypto.GetBytes(intBuffer);
+                    UInt32 rand = BitConverter.ToUInt32(intBuffer, 0);
+
+                    Int64 max = (1 + (Int64)UInt32.MaxValue);
+                    Int64 remainder = max % diff;
+                    if (rand < max - remainder)
+                    {
+                        return (Int32)(minValue + (rand % diff));
+                    }
+                }
+            }
+        }
+
         public static byte[] fetchForClient(Assembly assembly, String resourceName)
         {
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
