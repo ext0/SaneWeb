@@ -49,4 +49,20 @@ namespace SaneWeb.Resources.Attributes
             this.attribute = attribute;
         }
     }
+
+
+    public class HttpArgument
+    {
+        public readonly String key;
+        public readonly String value;
+        public HttpArgument(String key, String value)
+        {
+            this.key = key;
+            this.value = value;
+        }
+        public override string ToString()
+        {
+            return String.Format("{0}={1}", key, value);
+        }
+    }
 }

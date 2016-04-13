@@ -48,6 +48,14 @@ namespace SaneWeb.Data
             return modified;
         }
 
+        public void markModified(T obj)
+        {
+            if (!modified.Contains(obj))
+            {
+                modified.Add(obj);
+            }
+        }
+
         public void clearCache()
         {
             added.Clear();

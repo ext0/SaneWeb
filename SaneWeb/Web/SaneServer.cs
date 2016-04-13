@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using WebSocketSharp.Server;
 
 namespace SaneWeb.Web
 {
@@ -37,6 +38,14 @@ namespace SaneWeb.Web
             viewStructure = new XmlDocument();
             viewStructure.LoadXml(viewStructureContent);
             _listener.Start();
+        }
+
+        public WebSocketServerWrapper addWebSocketService<T>(int port, String path) where T : WebSocketBehavior, new()
+        {
+            WebSocketServerWrapper wss = new WebSocketServerWrapper(port);
+            wss.addService<T>(path);
+            wss.start();
+            return wss;
         }
 
         public bool getShowPublicErrors()

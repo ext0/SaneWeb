@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<view>
+  <resource path="Home.html" location="SocketExample.View.Home.html" content-type="text/html" situational="homepage"></resource>
+</view>

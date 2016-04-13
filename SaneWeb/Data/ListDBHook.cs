@@ -18,6 +18,7 @@ namespace SaneWeb.Data
         private List<AttributeProperty> properties;
         private FieldInfo idField;
         private TrackingList<T> openData;
+        private Object databaseLock;
         public Type declaredType { get { return model; } }
 
         public List<T> getUnderlyingData()
@@ -28,6 +29,7 @@ namespace SaneWeb.Data
         public ListDBHook(SQLiteConnection dbConnection)
         {
             model = typeof(T);
+            databaseLock = new object();
             this.dbConnection = dbConnection;
             object[] attributes = model.GetCustomAttributes(typeof(TableAttribute), true);
             if (attributes.Length == 0) throw new Exception(model.Name + " is not a valid table binding type!");
@@ -69,54 +71,57 @@ namespace SaneWeb.Data
 
         public int update()
         {
-            int i = 0;
-            List<T> newObjects = openData.getAdded();
-            List<T> updateObjects = openData.getModified();
-            List<T> removedObjects = openData.getRemoved();
-            using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
+            lock (databaseLock)
             {
-                foreach (T obj in newObjects)
+                int i = 0;
+                List<T> newObjects = openData.getAdded();
+                List<T> updateObjects = openData.getModified();
+                List<T> removedObjects = openData.getRemoved();
+                using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
                 {
-                    String query = "INSERT INTO " + tableName + " (id," + String.Join(",", properties.Select((x) => (x.attribute.column))) + ") VALUES(" + obj.getId() + "," + String.Join(",", properties.Select((x) => ("@" + x.propertyInfo.Name))) + ")";
-                    using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))
+                    foreach (T obj in newObjects)
                     {
-                        for (int j = 0; j < properties.Count; j++)
+                        String query = "INSERT INTO " + tableName + " (id," + String.Join(",", properties.Select((x) => (x.attribute.column))) + ") VALUES(" + obj.getId() + "," + String.Join(",", properties.Select((x) => ("@" + x.propertyInfo.Name))) + ")";
+                        using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))
                         {
-                            command.Parameters.AddWithValue("@" + properties[j].propertyInfo.Name, properties[j].propertyInfo.GetValue(obj));
+                            for (int j = 0; j < properties.Count; j++)
+                            {
+                                command.Parameters.AddWithValue("@" + properties[j].propertyInfo.Name, properties[j].propertyInfo.GetValue(obj));
+                            }
+                            i += command.ExecuteNonQuery();
                         }
-                        i += command.ExecuteNonQuery();
                     }
-                }
-                foreach (T obj in updateObjects)
-                {
-                    String query = "UPDATE " + tableName + " SET ";
-                    List<String> updates = new List<String>();
-                    foreach (AttributeProperty property in properties)
+                    foreach (T obj in updateObjects)
                     {
-                        updates.Add(property.attribute.column + "=@" + property.propertyInfo.Name);
-                    }
-                    query += String.Join(",", updates) + " WHERE id=" + obj.getId();
-                    using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))
-                    {
-                        for (int j = 0; j < properties.Count; j++)
+                        String query = "UPDATE " + tableName + " SET ";
+                        List<String> updates = new List<String>();
+                        foreach (AttributeProperty property in properties)
                         {
-                            command.Parameters.AddWithValue("@" + properties[j].propertyInfo.Name, properties[j].propertyInfo.GetValue(obj));
+                            updates.Add(property.attribute.column + "=@" + property.propertyInfo.Name);
                         }
-                        i += command.ExecuteNonQuery();
+                        query += String.Join(",", updates) + " WHERE id=" + obj.getId();
+                        using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))
+                        {
+                            for (int j = 0; j < properties.Count; j++)
+                            {
+                                command.Parameters.AddWithValue("@" + properties[j].propertyInfo.Name, properties[j].propertyInfo.GetValue(obj));
+                            }
+                            i += command.ExecuteNonQuery();
+                        }
                     }
-                }
-                foreach (T obj in removedObjects)
-                {
-                    String query = "DELETE FROM " + tableName + " WHERE id=" + obj.getId();
-                    using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))
+                    foreach (T obj in removedObjects)
                     {
-                        i += command.ExecuteNonQuery();
+                        String query = "DELETE FROM " + tableName + " WHERE id=" + obj.getId();
+                        using (SQLiteCommand command = new SQLiteCommand(query, dbConnection))
+                        {
+                            i += command.ExecuteNonQuery();
+                        }
                     }
+                    transaction.Commit();
                 }
-                transaction.Commit();
+                openData.clearCache();
+                return i;
             }
-            openData.clearCache();
-            return i;
         }
     }
 }

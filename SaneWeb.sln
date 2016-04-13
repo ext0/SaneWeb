@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSample", "MessageSam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaneWeb", "SaneWeb\SaneWeb.csproj", "{2D17A429-5831-4569-9390-F2005E0B1CD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketExample", "SocketExample\SocketExample.csproj", "{0E2E3DFA-2C91-4CA4-ADC1-401DA4DB4841}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,14 @@ Global
 		{2D17A429-5831-4569-9390-F2005E0B1CD4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2D17A429-5831-4569-9390-F2005E0B1CD4}.Release|x64.ActiveCfg = Release|x64
 		{2D17A429-5831-4569-9390-F2005E0B1CD4}.Release|x64.Build.0 = Release|x64
+		{0E2E3DFA-2C91-4CA4-ADC1-401DA4DB4841}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E2E3DFA-2C91-4CA4-ADC1-401DA4DB4841}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E2E3DFA-2C91-4CA4-ADC1-401DA4DB4841}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0E2E3DFA-2C91-4CA4-ADC1-401DA4DB4841}.Debug|x64.Build.0 = Debug|Any CPU
+		{0E2E3DFA-2C91-4CA4-ADC1-401DA4DB4841}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E2E3DFA-2C91-4CA4-ADC1-401DA4DB4841}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E2E3DFA-2C91-4CA4-ADC1-401DA4DB4841}.Release|x64.ActiveCfg = Release|Any CPU
+		{0E2E3DFA-2C91-4CA4-ADC1-401DA4DB4841}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
