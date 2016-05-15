@@ -12,13 +12,20 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using SaneWeb.LuaEngine;
 using System.Xml;
+using SaneWeb.ViewProcessor;
 
 namespace SaneWeb
 {
     public static class ResponseHandler
     {
+        /// <summary>
+        /// Gets a byte representation of the data requested in this HttpListenerContext request
+        /// </summary>
+        /// <param name="sender">Sender of the call</param>
+        /// <param name="context">Context of the HTTP request</param>
+        /// <param name="controllers">Relevant controllers to be searched for methods</param>
+        /// <returns>a byte representation of the data requested in this HttpListenerContext request</returns>
         public static byte[] handleResponse(SaneServer sender, HttpListenerContext context, List<Type> controllers)
         {
             List<HttpArgument> arguments = new List<HttpArgument>();
@@ -37,12 +44,15 @@ namespace SaneWeb
             }
             byte[] returned = new byte[] { };
             bool flag = false;
-            LuaProcesser processor;
             foreach (MethodInfo method in methods)
             {
                 ControllerAttribute attribute = method.GetCustomAttribute<ControllerAttribute>();
+                if (attribute == null)
+                {
+                    continue;
+                }
                 String trimmed = context.Request.RawUrl.Substring(0, context.Request.RawUrl.LastIndexOf("/") + 1);
-                if ((attribute.path.Substring(1).Equals(trimmed)))
+                if ((attribute.path.Substring(0).Equals(trimmed)))
                 {
                     try
                     {
@@ -105,15 +115,20 @@ namespace SaneWeb
                     if (request.Equals(node.Attributes["path"].Value.Replace("/", ".")))
                     {
                         context.Response.ContentType = node.Attributes["content-type"].Value;
-                        if (node.Attributes["lua"] != null && node.Attributes["lua"].Value.Equals("true"))
+                        byte[] clientData = Utility.fetchForClient(assembly, node.Attributes["location"].Value);
+                        foreach (MethodInfo method in methods)
                         {
-                            processor = new LuaProcesser(context, Utility.fetchForClient(assembly, node.Attributes["location"].Value));
-                            return processor.processedHTML;
+                            DataBoundViewAttribute attribute = method.GetCustomAttribute<DataBoundViewAttribute>();
+                            String trimmed = context.Request.RawUrl.Substring(0, context.Request.RawUrl.LastIndexOf("/") + 1);
+                            if ((attribute.path.Substring(0).Equals(trimmed)))
+                            {
+                                Object binding = method.Invoke(null, new object[] { context });
+                                DataBoundView boundView = new DataBoundView(clientData, binding);
+                                clientData = Encoding.UTF8.GetBytes(boundView.html);
+                                break;
+                            }
                         }
-                        else
-                        {
-                            return Utility.fetchForClient(assembly, node.Attributes["location"].Value);
-                        }
+                        return clientData;
                     }
                     if (node.Attributes["situational"] != null)
                     {
@@ -131,13 +146,61 @@ namespace SaneWeb
                 if (context.Request.RawUrl.Trim().Length <= 1)
                 {
                     context.Response.ContentType = "text/html";
-                    processor = new LuaProcesser(context, Utility.fetchForClient(assembly, homePage.Replace("/", ".")));
-                    return processor.processedHTML;
+                    byte[] clientData = Utility.fetchForClient(assembly, homePage.Replace("/", "."));
+                    foreach (MethodInfo method in methods)
+                    {
+                        DataBoundViewAttribute attribute = method.GetCustomAttribute<DataBoundViewAttribute>();
+                        String trimmed = context.Request.RawUrl.Substring(0, context.Request.RawUrl.LastIndexOf("/") + 1);
+                        if ((attribute.path.Substring(0).Equals(trimmed)))
+                        {
+                            Object binding = method.Invoke(null, new object[] { context });
+                            DataBoundView boundView = new DataBoundView(clientData, binding);
+                            clientData = Encoding.UTF8.GetBytes(boundView.html);
+                            break;
+                        }
+                    }
+                    return clientData;
+                }
+                if (sender.fileAccessPermitted)
+                {
+                    String[] dir = context.Request.RawUrl.Substring(1).Split('/');
+                    if (dir.Length != 0)
+                    {
+                        String current = Environment.CurrentDirectory;
+                        for (int i = 0; i < dir.Length - 1; i++)
+                        {
+                            if (Directory.Exists(Path.Combine(current, dir[i])))
+                            {
+                                current = Path.Combine(current, dir[i]);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        if (File.Exists(Path.Combine(current, dir[dir.Length - 1])))
+                        {
+                            context.Response.ContentType = "text/html";
+                            return File.ReadAllBytes(Path.Combine(current, dir[dir.Length - 1]));
+                        }
+                    }
                 }
                 context.Response.StatusCode = 404;
                 context.Response.ContentType = "text/html";
-                processor = new LuaProcesser(context, Utility.fetchForClient(assembly, notFound.Replace("/", ".")));
-                return processor.processedHTML;
+                byte[] ret = Utility.fetchForClient(assembly, notFound.Replace("/", "."));
+                foreach (MethodInfo method in methods)
+                {
+                    DataBoundViewAttribute attribute = method.GetCustomAttribute<DataBoundViewAttribute>();
+                    String trimmed = context.Request.RawUrl.Substring(0, context.Request.RawUrl.LastIndexOf("/") + 1);
+                    if ((attribute.path.Substring(0).Equals(trimmed)))
+                    {
+                        Object binding = method.Invoke(null, new object[] { context });
+                        DataBoundView boundView = new DataBoundView(ret, binding);
+                        ret = Encoding.UTF8.GetBytes(boundView.html);
+                        break;
+                    }
+                }
+                return ret;
             }
             return returned;
         }

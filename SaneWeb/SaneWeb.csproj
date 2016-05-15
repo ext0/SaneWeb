@@ -112,13 +112,12 @@
     <Compile Include="Data\EventList.cs" />
     <Compile Include="Data\ListDBHook.cs" />
     <Compile Include="Data\Model.cs" />
-    <Compile Include="LuaEngine\LuaProcesser.cs" />
+    <Compile Include="View\DataBoundView.cs" />
     <Compile Include="Resources\Attributes.cs" />
     <Compile Include="Resources\Utility.cs" />
     <Compile Include="ResponseHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Web\SaneServer.cs" />
-    <Compile Include="Web\WebSocketServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

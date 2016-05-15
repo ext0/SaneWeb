@@ -23,7 +23,7 @@ namespace MessageSample
 
             SaneServer ws = new SaneServer(
                 (Utility.fetchFromResource(true, Assembly.GetExecutingAssembly(), "MessageSample.Resources.ViewStructure.xml")),
-                "Database\\SaneDB.db",
+                "Database\\SaneDB.db", false,
                 "http://+:80/");
             ws.setShowPublicErrors(true);
             Console.WriteLine("Initialized!");

@@ -20,7 +20,7 @@ namespace SocketExample
         {
             SaneServer ws = new SaneServer(
     (Utility.fetchFromResource(true, Assembly.GetExecutingAssembly(), "SocketExample.Resources.ViewStructure.xml")),
-    "Database\\SaneDB.db",
+    "Database\\SaneDB.db", false,
     "http://+:80/");
             ws.setShowPublicErrors(true);
             ws.addWebSocketService<EchoWebSocketService>(8080, "/Echo");

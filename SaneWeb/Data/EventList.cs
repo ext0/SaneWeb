@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace SaneWeb.Data
 {
+    /// <summary>
+    /// Object for keeping track of changes in a List (additions, deletions, and modifications)
+    /// </summary>
+    /// <typeparam name="T">Model object to be stored in this object</typeparam>
     public class TrackingList<T> : IList<T> where T : Model<T>
     {
         private List<T> backing = new List<T>();
@@ -48,6 +52,10 @@ namespace SaneWeb.Data
             return modified;
         }
 
+        /// <summary>
+        /// Marks an object in the list as modified, which will queue it for DB table updates in the next ListDBHook update call
+        /// </summary>
+        /// <param name="obj">Object to be marked as modified</param>
         public void markModified(T obj)
         {
             if (!modified.Contains(obj))

@@ -12,20 +12,59 @@ namespace SaneWeb.Data
 {
     public class ListDBHook<T> where T : Model<T>
     {
-        private Type model;
-        private String tableName;
-        private SQLiteConnection dbConnection;
-        private List<AttributeProperty> properties;
-        private FieldInfo idField;
-        private TrackingList<T> openData;
-        private Object databaseLock;
+        /// <summary>
+        /// Type of the model this object is bound to
+        /// </summary>
+        private Type model { get; set; }
+
+        /// <summary>
+        /// Name of the table this object is bound to
+        /// </summary>
+        private String tableName { get; set; }
+
+        /// <summary>
+        /// SQLiteConnection to the database storing this bound data
+        /// </summary>
+        private SQLiteConnection dbConnection { get; set; }
+
+        /// <summary>
+        /// Properties of the Model object this object is bound to
+        /// </summary>
+        private List<AttributeProperty> properties { get; set; }
+
+        /// <summary>
+        /// Field storing the ID for the Model object this object is bound to
+        /// </summary>
+        private FieldInfo idField { get; set; }
+
+        /// <summary>
+        /// TrackingList of the bound type for this object
+        /// </summary>
+        private TrackingList<T> openData { get; set; }
+
+        /// <summary>
+        /// Locking object for database writing
+        /// </summary>
+        private Object databaseLock { get; set; }
+
+        /// <summary>
+        /// Type of the model this object is bound to
+        /// </summary>
         public Type declaredType { get { return model; } }
 
+        /// <summary>
+        /// Gets the current relevant underlying data bound to this object in a List
+        /// </summary>
+        /// <returns>The current relevant underlying data bound to this object in a List</returns>
         public List<T> getUnderlyingData()
         {
             return openData.getBacking();
         }
 
+        /// <summary>
+        /// Creates/loads a table in the relevant SQLite DB with the required structure for storing the Model
+        /// </summary>
+        /// <param name="dbConnection">A database connection connected to the SQLite DB this model is to be stored in</param>
         public ListDBHook(SQLiteConnection dbConnection)
         {
             model = typeof(T);
@@ -46,6 +85,11 @@ namespace SaneWeb.Data
             openData = new TrackingList<T>();
         }
 
+        /// <summary>
+        /// Gets a TrackingList object with the (current) bound data in the table
+        /// </summary>
+        /// <param name="allowCache">Determines whether or not to force a full table read for the request, deny cache usage for fetching data on the first call to this method.</param>
+        /// <returns>A TrackingList object with the (current) bound data in the table</returns>
         public TrackingList<T> getData(bool allowCache)
         {
             if ((allowCache) && (openData != null)) return openData;
@@ -69,6 +113,10 @@ namespace SaneWeb.Data
             return openData;
         }
 
+        /// <summary>
+        /// Updates the data stored in the bound TrackingList to the database table
+        /// </summary>
+        /// <returns>The amount of rows affected/created by the update</returns>
         public int update()
         {
             lock (databaseLock)

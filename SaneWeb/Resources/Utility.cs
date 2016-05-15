@@ -12,6 +12,11 @@ namespace SaneWeb.Resources
 {
     public static class Utility
     {
+        /// <summary>
+        /// Builds a cryptographically secure random String of the size maxSize
+        /// </summary>
+        /// <param name="maxSize">Size of the generated String</param>
+        /// <returns>The randomally generated String object</returns>
         public static string trustedRandomString(int maxSize)
         {
             char[] chars = new char[62];
@@ -31,16 +36,30 @@ namespace SaneWeb.Resources
             return result.ToString();
         }
 
+        /// <summary>
+        /// Serializes an object to a JSON string
+        /// </summary>
+        /// <param name="obj">Object to be serialized</param>
+        /// <returns>JSON representation of the object</returns>
         public static String serializeObjectToJSON(Object obj)
         {
             return JsonConvert.SerializeObject(obj);
         }
 
+        /// <summary>
+        /// Deserializes an object from its JSON representation into a .NET object
+        /// </summary>
+        /// <param name="json">JSON String to be deserialized</param>
+        /// <returns>Object represented in the String (must be cast to expected type)</returns>
         public static Object deserializeJSONToObject(String json)
         {
             return JsonConvert.DeserializeObject(json);
         }
 
+        /// <summary>
+        /// Generates a cryptographically secure random integer
+        /// </summary>
+        /// <returns>https://xkcd.com/221/</returns>
         public static int randomNumber()
         {
             byte[] data = new byte[1];
@@ -52,7 +71,13 @@ namespace SaneWeb.Resources
             }
             return Math.Abs(BitConverter.ToInt32(data, 0));
         }
-
+ 
+        /// <summary>
+        /// Generates a random integer within a specified range
+        /// </summary>
+        /// <param name="minValue">Inclusive minimum value of the requested integer</param>
+        /// <param name="maxValue">Inclusive maximum value of the requested integer</param>
+        /// <returns>A random number between minValue and maxValue</returns>
         public static int randomNumber(int minValue, int maxValue)
         {
             using (RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider())
@@ -76,7 +101,13 @@ namespace SaneWeb.Resources
                 }
             }
         }
-
+        
+        /// <summary>
+        /// Gets data from an embedded resource in its binary representation
+        /// </summary>
+        /// <param name="assembly">Assembly to search in</param>
+        /// <param name="resourceName">Full name of the resource</param>
+        /// <returns>Byte array of the contents of the resource</returns>
         public static byte[] fetchForClient(Assembly assembly, String resourceName)
         {
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
@@ -94,7 +125,13 @@ namespace SaneWeb.Resources
             }
         }
 
-        public static String fetchFromResource(bool isText, Assembly assembly, String resourceName)
+        /// <summary>
+        /// Gets data from an embedded resource in its String representation
+        /// </summary>
+        /// <param name="assembly">Assembly to search in</param>
+        /// <param name="resourceName">Full name of the resource</param>
+        /// <returns>String representation of the specified resource</returns>
+        public static String fetchFromResource(Assembly assembly, String resourceName)
         {
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             {

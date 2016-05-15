@@ -14,14 +14,25 @@ namespace SaneWeb.Data
 {
     public static class DBReferences
     {
+        /// <summary>
+        /// A dictionary containing open database connections
+        /// </summary>
         private static Dictionary<String, SQLiteConnection> openDatabases = new Dictionary<String, SQLiteConnection>();
 
+        /// <summary>
+        /// Creates a SQLite database
+        /// </summary>
+        /// <param name="db">The path to create the database file in</param>
         private static void createDatabase(String db)
         {
             Directory.CreateDirectory(db.Substring(0, db.LastIndexOf(Path.DirectorySeparatorChar)));
             SQLiteConnection.CreateFile(db);
         }
 
+        /// <summary>
+        /// Opens a SQLite database
+        /// </summary>
+        /// <param name="db">The path to fetch the database file from</param>
         public static void openDatabase(String db)
         {
             if (!File.Exists(db)) createDatabase(db);
@@ -36,6 +47,11 @@ namespace SaneWeb.Data
             }
         }
 
+        /// <summary>
+        /// Gets the database storing the relevant Model
+        /// </summary>
+        /// <typeparam name="T">Model type to search for</typeparam>
+        /// <returns>The path of the database storing the relevant Model data</returns>
         public static String findDBStoring<T>()
         {
             foreach (String db in openDatabases.Keys)
@@ -48,16 +64,30 @@ namespace SaneWeb.Data
             return null;
         }
 
+        /// <summary>
+        /// Gets a SQLiteConnection object from the specified database path
+        /// </summary>
+        /// <param name="db">Database path to get the connection for</param>
+        /// <returns>A SQLiteConnection object from the specified database path</returns>
         public static SQLiteConnection getDatabase(String db)
         {
             return openDatabases[db];
         }
 
+        /// <summary>
+        /// Checks if a database has been opened
+        /// </summary>
+        /// <param name="db">The path of the database being checked</param>
+        /// <returns>Whether or not the database has been opened</returns>
         public static bool databaseOpen(String db)
         {
             return openDatabases.ContainsKey(db);
         }
 
+        /// <summary>
+        /// Closes an open database connection
+        /// </summary>
+        /// <param name="db">The path of the database file being closed</param>
         public static void closeDatabase(String db)
         {
             if (openDatabases.ContainsKey(db))
@@ -71,6 +101,13 @@ namespace SaneWeb.Data
             }
         }
 
+        /// <summary>
+        /// Checks if a certain ID is unique for a specified Model table
+        /// </summary>
+        /// <typeparam name="T">Model (table) to be checking inside of</typeparam>
+        /// <param name="db">Database path to be checking</param>
+        /// <param name="id">ID to check</param>
+        /// <returns>Whether or not the ID was unique</returns>
         public static bool checkIdUnique<T>(String db, int id)
         {
             TableAttribute attribute = getTableInfoFrom<T>();
@@ -84,6 +121,11 @@ namespace SaneWeb.Data
             }
         }
 
+        /// <summary>
+        /// Gets the TableAttribute object for the Model specified
+        /// </summary>
+        /// <typeparam name="T">The Model type to check</typeparam>
+        /// <returns>The TableAttribute object for the Model specified</returns>
         private static TableAttribute getTableInfoFrom<T>()
         {
             Type type = typeof(T);
@@ -93,6 +135,12 @@ namespace SaneWeb.Data
             return attribute;
         }
 
+        /// <summary>
+        /// Checks whether or not a table already exists for the specified Model
+        /// </summary>
+        /// <typeparam name="T">The Model type to check</typeparam>
+        /// <param name="db">Database path to be checking</param>
+        /// <returns>Whether or not a table already exists for the specified Model</returns>
         public static bool tableExists<T>(String db)
         {
             TableAttribute attribute = getTableInfoFrom<T>();
@@ -109,17 +157,33 @@ namespace SaneWeb.Data
             }
         }
 
+        /// <summary>
+        /// Reads a database table and binds a ListDBHook object to the table specified by the Model
+        /// </summary>
+        /// <typeparam name="T">Model (table) to open</typeparam>
+        /// <param name="db">Database path to be opening</param>
+        /// <returns></returns>
         public static ListDBHook<T> openTable<T>(String db) where T : Model<T>
         {
             return new ListDBHook<T>(getDatabase(db));
         }
+
+        /// <summary>
+        /// Removes a table from the relevant SQLite DB by its name
+        /// </summary>
+        /// <param name="db">Database to be removing from</param>
+        /// <param name="table">Table name to remove</param>
         public static void dropTable(String db, String table)
         {
             SQLiteCommand command = new SQLiteCommand("DROP TABLE " + table, getDatabase(db));
             command.ExecuteNonQuery();
         }
 
-        //doesn't require SQL parameters, as this is ONLY called upon loading new models with custom metadata into the database, which is never visible to public
+        /// <summary>
+        /// Creates a fresh empty table using the specified Model
+        /// </summary>
+        /// <typeparam name="T">Model type to be creating a table for</typeparam>
+        /// <param name="db">Database path to create the Model table in</param>
         public static void createTable<T>(String db) where T : Model<T>
         {
             TableAttribute attribute = getTableInfoFrom<T>();
@@ -135,18 +199,6 @@ namespace SaneWeb.Data
             }
             SQLString += String.Join(",", columns) + ")";
             new SQLiteCommand(SQLString, dbConnection).ExecuteNonQuery();
-        }
-    }
-    public class TableInterface<T>
-    {
-        public SQLiteConnection accessedDB { get; }
-        public String accessedTable { get; }
-        private Type binding { get; }
-        public TableInterface(SQLiteConnection accessedDB, String accessedTable)
-        {
-            binding = typeof(T);
-            this.accessedDB = accessedDB;
-            this.accessedTable = accessedTable;
         }
     }
 }

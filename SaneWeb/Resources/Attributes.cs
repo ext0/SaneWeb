@@ -39,6 +39,16 @@ namespace SaneWeb.Resources.Attributes
         }
     }
 
+    [AttributeUsage(AttributeTargets.Method)]
+    public class DataBoundViewAttribute : Attribute
+    {
+        public String path;
+        public DataBoundViewAttribute(String path)
+        {
+            this.path = path;
+        }
+    }
+
     public class AttributeProperty
     {
         public readonly PropertyInfo propertyInfo;

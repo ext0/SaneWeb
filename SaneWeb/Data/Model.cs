@@ -18,9 +18,15 @@ namespace SaneWeb.Data
     [Serializable()]
     public abstract class Model<T> where T : Model<T>
     {
+        /// <summary>
+        /// Internal ID for the SQLite database
+        /// </summary>
         private int id;
 
-        public Model() //generate UNIQUE ID
+        /// <summary>
+        /// Creates a generic Model object with a random unique ID
+        /// </summary>
+        public Model()
         {
             int id = Utility.randomNumber();
             while (!DBReferences.checkIdUnique<T>(DBReferences.findDBStoring<T>(), id))
@@ -30,6 +36,10 @@ namespace SaneWeb.Data
             this.id = id;
         }
 
+        /// <summary>
+        /// Gets the ID for this Model
+        /// </summary>
+        /// <returns>A unique ID</returns>
         public int getId()
         {
             return id;
