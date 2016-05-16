@@ -21,7 +21,7 @@ namespace SaneWeb.Data
         /// <summary>
         /// Internal ID for the SQLite database
         /// </summary>
-        private int id;
+        private int ID;
 
         /// <summary>
         /// Creates a generic Model object with a random unique ID
@@ -29,20 +29,20 @@ namespace SaneWeb.Data
         public Model()
         {
             int id = Utility.randomNumber();
-            while (!DBReferences.checkIdUnique<T>(DBReferences.findDBStoring<T>(), id))
+            while (!DBReferences.CheckIdUnique<T>(DBReferences.FindDBStoring<T>(), id))
             {
                 id = Utility.randomNumber();
             }
-            this.id = id;
+            this.ID = id;
         }
 
         /// <summary>
         /// Gets the ID for this Model
         /// </summary>
         /// <returns>A unique ID</returns>
-        public int getId()
+        public int GetId()
         {
-            return id;
+            return ID;
         }
     }
 }

@@ -1,6 +1,9 @@
 ﻿using SaneWeb.Data;
+using SaneWeb.Resources.Attributes;
+using SaneWeb.Sockets;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -35,11 +38,6 @@ namespace SaneWeb.Web
         private String databasePath { get; set; }
 
         /// <summary>
-        /// Boolean value determining whether or not to display exceptions publicly on errors
-        /// </summary>
-        private bool showPublicErrors { get; set; }
-
-        /// <summary>
         /// XmlDocument storing information on the ViewStructure (specified in constructor)
         /// </summary>
         private XmlDocument viewStructure { get; set; }
@@ -48,6 +46,11 @@ namespace SaneWeb.Web
         /// Boolean value determining whether or not to search the filesystem (relative location of executable) if file is not specified in ViewStructure
         /// </summary>
         internal bool fileAccessPermitted { get; }
+
+        /// <summary>
+        /// Function representing the error handler, called whenever ResponseHandler encounters a fatal error, allows user to propogate data or handle errors
+        /// </summary>
+        internal Action<Object, SaneErrorEventArgs> errorHandler { get; set; }
 
         /// <summary>
         /// Creates an instance of SaneServer, initializing basic HTTP server functionality, and binds the server to specified prefixes
@@ -67,7 +70,6 @@ namespace SaneWeb.Web
             models = new List<Type>();
             Directory.CreateDirectory(databasePath.Substring(0, databasePath.LastIndexOf('\\')));
             this.databasePath = databasePath;
-            this.showPublicErrors = false;
             this.fileAccessPermitted = allowFileAccess;
             viewStructure = new XmlDocument();
             viewStructure.LoadXml(viewStructureContent);
@@ -75,19 +77,28 @@ namespace SaneWeb.Web
         }
 
         /// <summary>
-        /// Gets the showPublicErrors variable
+        /// Gets the currently set error handler to consume internal API or response errors
         /// </summary>
-        /// <returns>Whether or not to display errors publically, handled by ResponseHandler</returns>
-        public bool getShowPublicErrors()
+        /// <returns>The currently set error handler to consume internal API or response errors</returns>
+        public Action<Object, SaneErrorEventArgs> GetErrorHandler()
         {
-            return showPublicErrors;
+            return errorHandler;
+        }
+
+        /// <summary>
+        /// Sets the current error handler function to be called upon internal API or response errors
+        /// </summary>
+        /// <param name="errorHandler">Function to be called</param>
+        public void SetErrorHandler(Action<Object, SaneErrorEventArgs> errorHandler)
+        {
+            this.errorHandler = errorHandler;
         }
 
         /// <summary>
         /// Gets the XMLDocument representing the current view structure
         /// </summary>
         /// <returns>An XmlDocument representing the current view structure</returns>
-        public XmlDocument getViewStructure()
+        public XmlDocument GetViewStructure()
         {
             return viewStructure;
         }
@@ -96,9 +107,9 @@ namespace SaneWeb.Web
         /// Adds a controller (static class expected).
         /// </summary>
         /// <param name="controller">Type of the controller to be added</param>
-        public void addController(Type controller)
+        public void AddController(Type controller)
         {
-            if (controller.IsAbstract && controller.GetConstructors(System.Reflection.BindingFlags.Public).Length == 0)
+            if (!(controller.IsAbstract && controller.GetConstructors(System.Reflection.BindingFlags.Public).Length == 0))
             {
                 throw new Exception("Invalid type " + controller.Name + ", expected static controller class!");
             }
@@ -109,33 +120,48 @@ namespace SaneWeb.Web
         }
 
         /// <summary>
+        /// Registers a new WebSocketService on the specified port in the specified path
+        /// </summary>
+        /// <typeparam name="T">WebSocket service to be created</typeparam>
+        /// <param name="port">Port to run the WebSocket service on</param>
+        /// <param name="path">Path to run the WebSocket service on</param>
+        /// <returns>A WebSocketServerWrapper encapsulating the registered service</returns>
+        public WebSocketServerWrapper AddWebSocketService<T>(int port, String path) where T : WebSocketBehavior, new()
+        {
+            WebSocketServerWrapper wss = new WebSocketServerWrapper(port);
+            wss.addService<T>(path);
+            wss.start();
+            return wss;
+        }
+
+        /// <summary>
         /// Loads a model of type T into the database, creating/loading relevant tables
         /// </summary>
         /// <typeparam name="T">Type of the Model to be added (must implement Model)</typeparam>
         /// <returns>A wrapper for the table created/loaded</returns>
-        public ListDBHook<T> loadModel<T>() where T : Model<T>
+        public ListDBHook<T> LoadModel<T>() where T : Model<T>
         {
             Type model = typeof(T);
             if (!models.Contains(model))
             {
-                if (!DBReferences.databaseOpen(databasePath))
+                if (!DBReferences.DatabaseOpen(databasePath))
                 {
-                    DBReferences.openDatabase(databasePath);
+                    DBReferences.OpenDatabase(databasePath);
                 }
-                if (!DBReferences.tableExists<T>(databasePath))
+                if (!DBReferences.TableExists<T>(databasePath))
                 {
-                    DBReferences.createTable<T>(databasePath);
+                    DBReferences.CreateTable<T>(databasePath);
                 }
                 models.Add(model);
             }
-            return DBReferences.openTable<T>(databasePath);
+            return DBReferences.OpenTable<T>(databasePath);
         }
 
         /// <summary>
         /// Removes a controller from the stored controller list
         /// </summary>
         /// <param name="controller">Type of the controller to remove</param>
-        public void removeController(Type controller)
+        public void RemoveController(Type controller)
         {
             if (controllers.Contains(controller))
             {
@@ -146,7 +172,7 @@ namespace SaneWeb.Web
         /// <summary>
         /// Starts the main responder loop for the HTTP server, starts handling live requests
         /// </summary>
-        public void run()
+        public void Run()
         {
             ThreadPool.QueueUserWorkItem((o) =>
             {
@@ -164,7 +190,10 @@ namespace SaneWeb.Web
                                 ctx.Response.ContentLength64 = buf.Length;
                                 ctx.Response.OutputStream.Write(buf, 0, buf.Length);
                             }
-                            catch { }
+                            catch (Exception e)
+                            {
+                                GetErrorHandler()(this, new SaneErrorEventArgs(ResponseErrorReason.WEBSERVER_ERROR, e, false, ""));
+                            }
                             finally
                             {
                                 ctx.Response.OutputStream.Close();
@@ -179,7 +208,7 @@ namespace SaneWeb.Web
         /// <summary>
         /// Stops and closes this HTTP server
         /// </summary>
-        public void stop()
+        public void Stop()
         {
             _listener.Stop();
             _listener.Close();

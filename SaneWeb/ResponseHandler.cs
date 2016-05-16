@@ -29,7 +29,7 @@ namespace SaneWeb
         public static byte[] handleResponse(SaneServer sender, HttpListenerContext context, List<Type> controllers)
         {
             List<HttpArgument> arguments = new List<HttpArgument>();
-            MethodInfo[][] info = controllers.Select((g) => (g.GetMethods().Where((x) => (x.GetCustomAttribute<ControllerAttribute>() != null)).ToArray())).ToArray();
+            MethodInfo[][] info = controllers.Select((g) => (g.GetMethods().Where((x) => (x.GetCustomAttribute<ControllerAttribute>() != null || x.GetCustomAttribute<DataBoundViewAttribute>() != null)).ToArray())).ToArray();
             List<MethodInfo> methods = new List<MethodInfo>();
             for (int i = 0; i < info.Length; i++)
             {
@@ -43,7 +43,6 @@ namespace SaneWeb
                 arguments.Add(new HttpArgument(key, context.Request.QueryString.GetValues(key).First()));
             }
             byte[] returned = new byte[] { };
-            bool flag = false;
             foreach (MethodInfo method in methods)
             {
                 ControllerAttribute attribute = method.GetCustomAttribute<ControllerAttribute>();
@@ -52,7 +51,7 @@ namespace SaneWeb
                     continue;
                 }
                 String trimmed = context.Request.RawUrl.Substring(0, context.Request.RawUrl.LastIndexOf("/") + 1);
-                if ((attribute.path.Substring(0).Equals(trimmed)))
+                if ((attribute.path.Substring(0).Equals(trimmed)) && (attribute.verb.Equals(context.Request.HttpMethod)))
                 {
                     try
                     {
@@ -88,70 +87,67 @@ namespace SaneWeb
                     catch (Exception e)
                     {
                         context.Response.ContentType = "application/json";
-                        if (sender.getShowPublicErrors())
+                        if (sender.GetErrorHandler() != null)
                         {
-                            returned = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(e));
+                            context.Response.StatusCode = 400;
+                            SaneErrorEventArgs args = new SaneErrorEventArgs(ResponseErrorReason.INTERNAL_API_THROW, e, false, "");
+                            sender.GetErrorHandler()(null, args);
+                            if (args.Propogate)
+                            {
+                                return Encoding.UTF8.GetBytes(args.Response);
+                            }
+                            else
+                            {
+                                return new byte[] { };
+                            }
                         }
                         else
                         {
-                            returned = Encoding.UTF8.GetBytes("An error occured processing your request!");
+                            context.Response.StatusCode = 400;
+                            return Encoding.UTF8.GetBytes("An error occured processing your request, and no error handler is currently set!");
                         }
                     }
-                    flag = true;
-                    break;
+                    return returned;
+                }
+                else if ((attribute.path.Substring(0).Equals(trimmed)))
+                {
+                    if (sender.GetErrorHandler() != null)
+                    {
+                        context.Response.StatusCode = 400;
+                        SaneErrorEventArgs args = new SaneErrorEventArgs(ResponseErrorReason.INCORRECT_API_TYPE, new Exception("Incorrect API request type! Got " + context.Request.HttpMethod + ", expected " + attribute.verb + "!"), false, "");
+                        sender.GetErrorHandler()(null, args);
+                        if (args.Propogate)
+                        {
+                            return Encoding.UTF8.GetBytes(args.Response);
+                        }
+                        else
+                        {
+                            return new byte[] { };
+                        }
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = 400;
+                        return Encoding.UTF8.GetBytes("An error occured processing your request, and no error handler is currently set!");
+                    }
                 }
             }
-            if (!flag)
+            Assembly assembly = Assembly.GetEntryAssembly();
+            XmlDocument structure = sender.GetViewStructure();
+            XmlNodeList resources = structure.SelectNodes("view/resource");
+            String request = context.Request.RawUrl.Substring(1).Replace("/", ".");
+            XmlNode homePage = null;
+            XmlNode notFound = null;
+            foreach (XmlNode node in resources)
             {
-                Assembly assembly = Assembly.GetEntryAssembly();
-                XmlDocument structure = sender.getViewStructure();
-                String xPath = "view/resource";
-                XmlNodeList resources = structure.SelectNodes(xPath);
-                String request = context.Request.RawUrl.Substring(1).Replace("/", ".");
-                String homePage = String.Empty;
-                String notFound = String.Empty;
-                foreach (XmlNode node in resources)
+                if (request.Equals(node.Attributes["path"].Value.Replace("/", ".")))
                 {
-                    if (request.Equals(node.Attributes["path"].Value.Replace("/", ".")))
-                    {
-                        context.Response.ContentType = node.Attributes["content-type"].Value;
-                        byte[] clientData = Utility.fetchForClient(assembly, node.Attributes["location"].Value);
-                        foreach (MethodInfo method in methods)
-                        {
-                            DataBoundViewAttribute attribute = method.GetCustomAttribute<DataBoundViewAttribute>();
-                            String trimmed = context.Request.RawUrl.Substring(0, context.Request.RawUrl.LastIndexOf("/") + 1);
-                            if ((attribute.path.Substring(0).Equals(trimmed)))
-                            {
-                                Object binding = method.Invoke(null, new object[] { context });
-                                DataBoundView boundView = new DataBoundView(clientData, binding);
-                                clientData = Encoding.UTF8.GetBytes(boundView.html);
-                                break;
-                            }
-                        }
-                        return clientData;
-                    }
-                    if (node.Attributes["situational"] != null)
-                    {
-                        String value = node.Attributes["situational"].Value;
-                        if (value.Equals("homepage"))
-                        {
-                            homePage = node.Attributes["location"].Value;
-                        }
-                        else if (value.Equals("404"))
-                        {
-                            notFound = node.Attributes["location"].Value;
-                        }
-                    }
-                }
-                if (context.Request.RawUrl.Trim().Length <= 1)
-                {
-                    context.Response.ContentType = "text/html";
-                    byte[] clientData = Utility.fetchForClient(assembly, homePage.Replace("/", "."));
+                    context.Response.ContentType = node.Attributes["content-type"].Value;
+                    byte[] clientData = Utility.fetchForClient(assembly, node.Attributes["location"].Value);
                     foreach (MethodInfo method in methods)
                     {
                         DataBoundViewAttribute attribute = method.GetCustomAttribute<DataBoundViewAttribute>();
-                        String trimmed = context.Request.RawUrl.Substring(0, context.Request.RawUrl.LastIndexOf("/") + 1);
-                        if ((attribute.path.Substring(0).Equals(trimmed)))
+                        if ((attribute.path.Equals(context.Request.RawUrl)))
                         {
                             Object binding = method.Invoke(null, new object[] { context });
                             DataBoundView boundView = new DataBoundView(clientData, binding);
@@ -161,38 +157,74 @@ namespace SaneWeb
                     }
                     return clientData;
                 }
-                if (sender.fileAccessPermitted)
+                if (node.Attributes["situational"] != null)
                 {
-                    String[] dir = context.Request.RawUrl.Substring(1).Split('/');
-                    if (dir.Length != 0)
+                    String value = node.Attributes["situational"].Value;
+                    if (value.Equals("homepage"))
                     {
-                        String current = Environment.CurrentDirectory;
-                        for (int i = 0; i < dir.Length - 1; i++)
+                        homePage = node;
+                    }
+                    else if (value.Equals("404"))
+                    {
+                        notFound = node;
+                    }
+                }
+            }
+            if (context.Request.RawUrl.Trim().Length <= 1)
+            {
+                context.Response.ContentType = "text/html";
+                byte[] clientData = new byte[] { };
+                if (homePage != null)
+                {
+                    clientData = Utility.fetchForClient(assembly, homePage.Attributes["location"].Value.Replace("/", "."));
+                    foreach (MethodInfo method in methods)
+                    {
+                        DataBoundViewAttribute attribute = method.GetCustomAttribute<DataBoundViewAttribute>();
+                        if ((attribute.path.Substring(1).Equals(homePage.Attributes["path"].Value)))
                         {
-                            if (Directory.Exists(Path.Combine(current, dir[i])))
-                            {
-                                current = Path.Combine(current, dir[i]);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                        if (File.Exists(Path.Combine(current, dir[dir.Length - 1])))
-                        {
-                            context.Response.ContentType = "text/html";
-                            return File.ReadAllBytes(Path.Combine(current, dir[dir.Length - 1]));
+                            Object binding = method.Invoke(null, new object[] { context });
+                            DataBoundView boundView = new DataBoundView(clientData, binding);
+                            clientData = Encoding.UTF8.GetBytes(boundView.html);
+                            break;
                         }
                     }
                 }
-                context.Response.StatusCode = 404;
-                context.Response.ContentType = "text/html";
-                byte[] ret = Utility.fetchForClient(assembly, notFound.Replace("/", "."));
+                return clientData;
+            }
+            if (sender.fileAccessPermitted)
+            {
+                String[] dir = context.Request.RawUrl.Substring(1).Split('/');
+                if (dir.Length != 0)
+                {
+                    String current = Environment.CurrentDirectory;
+                    for (int i = 0; i < dir.Length - 1; i++)
+                    {
+                        if (Directory.Exists(Path.Combine(current, dir[i])))
+                        {
+                            current = Path.Combine(current, dir[i]);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    if (File.Exists(Path.Combine(current, dir[dir.Length - 1])))
+                    {
+                        context.Response.ContentType = "text/html";
+                        return File.ReadAllBytes(Path.Combine(current, dir[dir.Length - 1]));
+                    }
+                }
+            }
+            context.Response.StatusCode = 404;
+            context.Response.ContentType = "text/html";
+            byte[] ret = new byte[] { };
+            if (notFound != null)
+            {
+                ret = Utility.fetchForClient(assembly, notFound.Attributes["location"].Value.Replace("/", "."));
                 foreach (MethodInfo method in methods)
                 {
                     DataBoundViewAttribute attribute = method.GetCustomAttribute<DataBoundViewAttribute>();
-                    String trimmed = context.Request.RawUrl.Substring(0, context.Request.RawUrl.LastIndexOf("/") + 1);
-                    if ((attribute.path.Substring(0).Equals(trimmed)))
+                    if ((attribute.path.Substring(1).Equals(notFound.Attributes["path"].Value)))
                     {
                         Object binding = method.Invoke(null, new object[] { context });
                         DataBoundView boundView = new DataBoundView(ret, binding);
@@ -200,9 +232,8 @@ namespace SaneWeb
                         break;
                     }
                 }
-                return ret;
             }
-            return returned;
+            return ret;
         }
     }
 }

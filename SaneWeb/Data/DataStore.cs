@@ -15,7 +15,7 @@ namespace SaneWeb.Data
         /// </summary>
         /// <param name="key">The key to add the object under</param>
         /// <param name="obj">The data being stored</param>
-        public static void addGlobalVar(String key, Object obj)
+        public static void AddGlobalVar(String key, Object obj)
         {
             globalVars.Add(key, obj);
         }
@@ -25,7 +25,7 @@ namespace SaneWeb.Data
         /// </summary>
         /// <param name="key">They key in which the requested data is stored under</param>
         /// <returns>The requested object, if it exists.</returns>
-        public static Object getGlobalVar(String key)
+        public static Object GetGlobalVar(String key)
         {
             return globalVars[key];
         }
@@ -34,7 +34,7 @@ namespace SaneWeb.Data
         /// Gets all stored global variables
         /// </summary>
         /// <returns>All stored global variables</returns>
-        public static IEnumerable<Object> getGlobalVars()
+        public static IEnumerable<Object> GetGlobalVars()
         {
             return globalVars.Values;
         }
@@ -44,7 +44,7 @@ namespace SaneWeb.Data
         /// </summary>
         /// <param name="key">The key to check</param>
         /// <returns>A boolean value representing whether or not the global variable store has an entry with the specified key</returns>
-        public static bool varExists(String key)
+        public static bool VarExists(String key)
         {
             return globalVars.ContainsKey(key);
         }
@@ -53,7 +53,7 @@ namespace SaneWeb.Data
         /// Removes a global variable from the data store
         /// </summary>
         /// <param name="key">The key to remove from the data store</param>
-        public static void removeGlobalVar(String key)
+        public static void RemoveGlobalVar(String key)
         {
             globalVars.Remove(key);
         }

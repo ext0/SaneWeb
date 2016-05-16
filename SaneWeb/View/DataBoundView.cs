@@ -86,13 +86,13 @@ namespace SaneWeb.ViewProcessor
         }
 
         /// <summary>
-        /// Initializes a DataBoundView with the specified HTML bytes (ASCII expected) and an object to bind to the HTML. Properties in the object can be inserted dynamically into the HTML using @ tags.
+        /// Initializes a DataBoundView with the specified HTML bytes (UTF-8 expected) and an object to bind to the HTML. Properties in the object can be inserted dynamically into the HTML using @ tags.
         /// </summary>
-        /// <param name="html">ASCII encoded bytes to be processed</param>
+        /// <param name="html">UTF-8 encoded bytes to be processed</param>
         /// <param name="data">Data to bind to the HTML</param>
         public DataBoundView(byte[] html, Object data)
         {
-            this.html = Encoding.ASCII.GetString(html);
+            this.html = Encoding.UTF8.GetString(html);
             this.boundData = data;
             initialize();
         }
@@ -119,7 +119,6 @@ namespace SaneWeb.ViewProcessor
                 sb.Insert(marker.index, property);
                 index = index += property.Length;
                 html = sb.ToString();
-
             }
         }
 

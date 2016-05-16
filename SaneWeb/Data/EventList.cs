@@ -37,17 +37,17 @@ namespace SaneWeb.Data
             }
         }
 
-        public List<T> getAdded()
+        public List<T> GetAdded()
         {
             return added;
         }
 
-        public List<T> getRemoved()
+        public List<T> GetRemoved()
         {
             return removed;
         }
 
-        public List<T> getModified()
+        public List<T> GetModified()
         {
             return modified;
         }
@@ -56,7 +56,7 @@ namespace SaneWeb.Data
         /// Marks an object in the list as modified, which will queue it for DB table updates in the next ListDBHook update call
         /// </summary>
         /// <param name="obj">Object to be marked as modified</param>
-        public void markModified(T obj)
+        public void MarkModified(T obj)
         {
             if (!modified.Contains(obj))
             {
@@ -64,7 +64,7 @@ namespace SaneWeb.Data
             }
         }
 
-        public void clearCache()
+        public void ClearCache()
         {
             added.Clear();
             removed.Clear();

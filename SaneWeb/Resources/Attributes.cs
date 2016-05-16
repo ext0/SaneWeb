@@ -33,9 +33,25 @@ namespace SaneWeb.Resources.Attributes
     public class ControllerAttribute : Attribute
     {
         public String path;
-        public ControllerAttribute(String path)
+        public APIType type;
+        public String verb
+        {
+            get
+            {
+                switch (type)
+                {
+                    case (APIType.GET):
+                        return "GET";
+                    case (APIType.POST):
+                        return "POST";
+                }
+                throw new Exception("Unspecified APIType " + type + "!");
+            }
+        }
+        public ControllerAttribute(String path, APIType type)
         {
             this.path = path;
+            this.type = type;
         }
     }
 
@@ -60,7 +76,6 @@ namespace SaneWeb.Resources.Attributes
         }
     }
 
-
     public class HttpArgument
     {
         public readonly String key;
@@ -73,6 +88,50 @@ namespace SaneWeb.Resources.Attributes
         public override string ToString()
         {
             return String.Format("{0}={1}", key, value);
+        }
+    }
+
+    public enum APIType
+    {
+        POST,
+        GET
+    }
+
+    public enum ResponseErrorReason
+    {
+        INCORRECT_API_TYPE,
+        INTERNAL_API_THROW,
+        WEBSERVER_ERROR
+    }
+
+    public class SaneErrorEventArgs
+    {
+        /// <summary>
+        /// Reason for the call to the event handler
+        /// </summary>
+        public ResponseErrorReason Reason { get; set; }
+
+        /// <summary>
+        /// Relevant exception object for the error
+        /// </summary>
+        public Exception Exception { get; set; }
+
+        /// <summary>
+        /// Whether or not to continue back to the ResponseHandler after error handling, defaults to false
+        /// </summary>
+        public bool Propogate { get; set; }
+
+        /// <summary>
+        /// If propogating the error, the response to be delivered to the client (public facing)
+        /// </summary>
+        public String Response { get; set; }
+
+        public SaneErrorEventArgs(ResponseErrorReason reason, Exception exception, bool propogate, String response)
+        {
+            this.Reason = reason;
+            this.Exception = exception;
+            this.Propogate = false;
+            this.Response = response;
         }
     }
 }

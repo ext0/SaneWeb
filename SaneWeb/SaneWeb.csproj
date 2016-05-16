@@ -112,6 +112,7 @@
     <Compile Include="Data\EventList.cs" />
     <Compile Include="Data\ListDBHook.cs" />
     <Compile Include="Data\Model.cs" />
+    <Compile Include="Sockets\WebSocketServerWrapper.cs" />
     <Compile Include="View\DataBoundView.cs" />
     <Compile Include="Resources\Attributes.cs" />
     <Compile Include="Resources\Utility.cs" />

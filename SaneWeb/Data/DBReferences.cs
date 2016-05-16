@@ -17,13 +17,13 @@ namespace SaneWeb.Data
         /// <summary>
         /// A dictionary containing open database connections
         /// </summary>
-        private static Dictionary<String, SQLiteConnection> openDatabases = new Dictionary<String, SQLiteConnection>();
+        private static Dictionary<String, SQLiteConnection> OpenDatabases = new Dictionary<String, SQLiteConnection>();
 
         /// <summary>
         /// Creates a SQLite database
         /// </summary>
         /// <param name="db">The path to create the database file in</param>
-        private static void createDatabase(String db)
+        private static void CreateDatabase(String db)
         {
             Directory.CreateDirectory(db.Substring(0, db.LastIndexOf(Path.DirectorySeparatorChar)));
             SQLiteConnection.CreateFile(db);
@@ -33,13 +33,13 @@ namespace SaneWeb.Data
         /// Opens a SQLite database
         /// </summary>
         /// <param name="db">The path to fetch the database file from</param>
-        public static void openDatabase(String db)
+        public static void OpenDatabase(String db)
         {
-            if (!File.Exists(db)) createDatabase(db);
-            if (!openDatabases.ContainsKey(db))
+            if (!File.Exists(db)) CreateDatabase(db);
+            if (!OpenDatabases.ContainsKey(db))
             {
-                openDatabases[db] = new SQLiteConnection("Data Source=" + db + ";Version=3;");
-                openDatabases[db].Open();
+                OpenDatabases[db] = new SQLiteConnection("Data Source=" + db + ";Version=3;");
+                OpenDatabases[db].Open();
             }
             else
             {
@@ -52,11 +52,11 @@ namespace SaneWeb.Data
         /// </summary>
         /// <typeparam name="T">Model type to search for</typeparam>
         /// <returns>The path of the database storing the relevant Model data</returns>
-        public static String findDBStoring<T>()
+        public static String FindDBStoring<T>()
         {
-            foreach (String db in openDatabases.Keys)
+            foreach (String db in OpenDatabases.Keys)
             {
-                if (tableExists<T>(db))
+                if (TableExists<T>(db))
                 {
                     return db;
                 }
@@ -69,9 +69,9 @@ namespace SaneWeb.Data
         /// </summary>
         /// <param name="db">Database path to get the connection for</param>
         /// <returns>A SQLiteConnection object from the specified database path</returns>
-        public static SQLiteConnection getDatabase(String db)
+        public static SQLiteConnection GetDatabase(String db)
         {
-            return openDatabases[db];
+            return OpenDatabases[db];
         }
 
         /// <summary>
@@ -79,21 +79,21 @@ namespace SaneWeb.Data
         /// </summary>
         /// <param name="db">The path of the database being checked</param>
         /// <returns>Whether or not the database has been opened</returns>
-        public static bool databaseOpen(String db)
+        public static bool DatabaseOpen(String db)
         {
-            return openDatabases.ContainsKey(db);
+            return OpenDatabases.ContainsKey(db);
         }
 
         /// <summary>
         /// Closes an open database connection
         /// </summary>
         /// <param name="db">The path of the database file being closed</param>
-        public static void closeDatabase(String db)
+        public static void CloseDatabase(String db)
         {
-            if (openDatabases.ContainsKey(db))
+            if (OpenDatabases.ContainsKey(db))
             {
-                openDatabases[db].Close();
-                openDatabases.Remove(db);
+                OpenDatabases[db].Close();
+                OpenDatabases.Remove(db);
             }
             else
             {
@@ -108,10 +108,10 @@ namespace SaneWeb.Data
         /// <param name="db">Database path to be checking</param>
         /// <param name="id">ID to check</param>
         /// <returns>Whether or not the ID was unique</returns>
-        public static bool checkIdUnique<T>(String db, int id)
+        public static bool CheckIdUnique<T>(String db, int id)
         {
-            TableAttribute attribute = getTableInfoFrom<T>();
-            using (SQLiteCommand command = new SQLiteCommand("SELECT EXISTS(SELECT 1 FROM " + attribute.tableName + " WHERE id=" + id + " LIMIT 1)", getDatabase(db)))
+            TableAttribute attribute = GetTableInfoFrom<T>();
+            using (SQLiteCommand command = new SQLiteCommand("SELECT EXISTS(SELECT 1 FROM " + attribute.tableName + " WHERE id=" + id + " LIMIT 1)", GetDatabase(db)))
             {
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
@@ -126,7 +126,7 @@ namespace SaneWeb.Data
         /// </summary>
         /// <typeparam name="T">The Model type to check</typeparam>
         /// <returns>The TableAttribute object for the Model specified</returns>
-        private static TableAttribute getTableInfoFrom<T>()
+        private static TableAttribute GetTableInfoFrom<T>()
         {
             Type type = typeof(T);
             object[] attributes = typeof(T).GetCustomAttributes(typeof(TableAttribute), true);
@@ -141,10 +141,10 @@ namespace SaneWeb.Data
         /// <typeparam name="T">The Model type to check</typeparam>
         /// <param name="db">Database path to be checking</param>
         /// <returns>Whether or not a table already exists for the specified Model</returns>
-        public static bool tableExists<T>(String db)
+        public static bool TableExists<T>(String db)
         {
-            TableAttribute attribute = getTableInfoFrom<T>();
-            using (SQLiteCommand command = new SQLiteCommand("PRAGMA table_info(" + attribute.tableName + ")", getDatabase(db)))
+            TableAttribute attribute = GetTableInfoFrom<T>();
+            using (SQLiteCommand command = new SQLiteCommand("PRAGMA table_info(" + attribute.tableName + ")", GetDatabase(db)))
             {
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
@@ -163,9 +163,9 @@ namespace SaneWeb.Data
         /// <typeparam name="T">Model (table) to open</typeparam>
         /// <param name="db">Database path to be opening</param>
         /// <returns></returns>
-        public static ListDBHook<T> openTable<T>(String db) where T : Model<T>
+        public static ListDBHook<T> OpenTable<T>(String db) where T : Model<T>
         {
-            return new ListDBHook<T>(getDatabase(db));
+            return new ListDBHook<T>(GetDatabase(db));
         }
 
         /// <summary>
@@ -173,9 +173,9 @@ namespace SaneWeb.Data
         /// </summary>
         /// <param name="db">Database to be removing from</param>
         /// <param name="table">Table name to remove</param>
-        public static void dropTable(String db, String table)
+        public static void DropTable(String db, String table)
         {
-            SQLiteCommand command = new SQLiteCommand("DROP TABLE " + table, getDatabase(db));
+            SQLiteCommand command = new SQLiteCommand("DROP TABLE " + table, GetDatabase(db));
             command.ExecuteNonQuery();
         }
 
@@ -184,10 +184,10 @@ namespace SaneWeb.Data
         /// </summary>
         /// <typeparam name="T">Model type to be creating a table for</typeparam>
         /// <param name="db">Database path to create the Model table in</param>
-        public static void createTable<T>(String db) where T : Model<T>
+        public static void CreateTable<T>(String db) where T : Model<T>
         {
-            TableAttribute attribute = getTableInfoFrom<T>();
-            SQLiteConnection dbConnection = getDatabase(db);
+            TableAttribute attribute = GetTableInfoFrom<T>();
+            SQLiteConnection dbConnection = GetDatabase(db);
             String SQLString = "CREATE TABLE " + attribute.tableName + " (";
             List<String> columns = new List<String>();
             columns.Add(" id INT");
