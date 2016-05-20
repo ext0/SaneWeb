@@ -147,12 +147,12 @@ namespace SaneWeb
                     foreach (MethodInfo method in methods)
                     {
                         DataBoundViewAttribute attribute = method.GetCustomAttribute<DataBoundViewAttribute>();
+                        if (attribute == null) continue;
                         if ((attribute.path.Equals(context.Request.RawUrl)))
                         {
                             Object binding = method.Invoke(null, new object[] { context });
                             DataBoundView boundView = new DataBoundView(clientData, binding);
-                            clientData = Encoding.UTF8.GetBytes(boundView.html);
-                            break;
+                            return Encoding.UTF8.GetBytes(boundView.html);
                         }
                     }
                     return clientData;
@@ -180,12 +180,12 @@ namespace SaneWeb
                     foreach (MethodInfo method in methods)
                     {
                         DataBoundViewAttribute attribute = method.GetCustomAttribute<DataBoundViewAttribute>();
+                        if (attribute == null) continue;
                         if ((attribute.path.Substring(1).Equals(homePage.Attributes["path"].Value)))
                         {
                             Object binding = method.Invoke(null, new object[] { context });
                             DataBoundView boundView = new DataBoundView(clientData, binding);
-                            clientData = Encoding.UTF8.GetBytes(boundView.html);
-                            break;
+                            return Encoding.UTF8.GetBytes(boundView.html);
                         }
                     }
                 }
@@ -224,12 +224,12 @@ namespace SaneWeb
                 foreach (MethodInfo method in methods)
                 {
                     DataBoundViewAttribute attribute = method.GetCustomAttribute<DataBoundViewAttribute>();
+                    if (attribute == null) continue;
                     if ((attribute.path.Substring(1).Equals(notFound.Attributes["path"].Value)))
                     {
                         Object binding = method.Invoke(null, new object[] { context });
                         DataBoundView boundView = new DataBoundView(ret, binding);
-                        ret = Encoding.UTF8.GetBytes(boundView.html);
-                        break;
+                        return Encoding.UTF8.GetBytes(boundView.html);
                     }
                 }
             }

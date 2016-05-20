@@ -71,6 +71,7 @@ namespace SaneWeb.Web
             Directory.CreateDirectory(databasePath.Substring(0, databasePath.LastIndexOf('\\')));
             this.databasePath = databasePath;
             this.fileAccessPermitted = allowFileAccess;
+            this.errorHandler = null;
             viewStructure = new XmlDocument();
             viewStructure.LoadXml(viewStructureContent);
             _listener.Start();
@@ -83,7 +84,7 @@ namespace SaneWeb.Web
         public Action<Object, SaneErrorEventArgs> GetErrorHandler()
         {
             return errorHandler;
-        }
+        } 
 
         /// <summary>
         /// Sets the current error handler function to be called upon internal API or response errors
@@ -192,6 +193,10 @@ namespace SaneWeb.Web
                             }
                             catch (Exception e)
                             {
+                                if (errorHandler == null)
+                                {
+                                    return;
+                                }
                                 GetErrorHandler()(this, new SaneErrorEventArgs(ResponseErrorReason.WEBSERVER_ERROR, e, false, ""));
                             }
                             finally
