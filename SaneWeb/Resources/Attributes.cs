@@ -34,6 +34,7 @@ namespace SaneWeb.Resources.Attributes
     {
         public String path;
         public APIType type;
+        public String contentType;
         public String verb
         {
             get
@@ -48,10 +49,11 @@ namespace SaneWeb.Resources.Attributes
                 throw new Exception("Unspecified APIType " + type + "!");
             }
         }
-        public ControllerAttribute(String path, APIType type)
+        public ControllerAttribute(String path, APIType type, String contentType)
         {
             this.path = path;
             this.type = type;
+            this.contentType = contentType;
         }
     }
 

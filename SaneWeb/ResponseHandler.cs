@@ -81,12 +81,19 @@ namespace SaneWeb
                         {
                             finalized[i] = (match.ContainsKey(parameters[i])) ? match[parameters[i]] : null;
                         }
-                        context.Response.ContentType = "application/json";
-                        returned = Encoding.UTF8.GetBytes(method.Invoke(null, finalized) + "");
+                        context.Response.ContentType = attribute.contentType;
+                        if (method.ReturnType.Equals((new byte[] { }).GetType()))
+                        {
+                            return (byte[])method.Invoke(null, finalized);
+                        }
+                        else
+                        {
+                            return Encoding.UTF8.GetBytes(method.Invoke(null, finalized) + "");
+                        }
                     }
                     catch (Exception e)
                     {
-                        context.Response.ContentType = "application/json";
+                        context.Response.ContentType = attribute.contentType;
                         if (sender.GetErrorHandler() != null)
                         {
                             context.Response.StatusCode = 400;
@@ -107,7 +114,6 @@ namespace SaneWeb
                             return Encoding.UTF8.GetBytes("An error occured processing your request, and no error handler is currently set!");
                         }
                     }
-                    return returned;
                 }
                 else if ((attribute.path.Substring(0).Equals(trimmed)))
                 {
