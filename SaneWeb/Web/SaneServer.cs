@@ -1,6 +1,5 @@
 ﻿using SaneWeb.Data;
 using SaneWeb.Resources.Attributes;
-using SaneWeb.Sockets;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +10,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using WebSocketSharp.Server;
 
 namespace SaneWeb.Web
 {
@@ -43,11 +41,6 @@ namespace SaneWeb.Web
         private XmlDocument viewStructure { get; set; }
 
         /// <summary>
-        /// Boolean value determining whether or not to search the filesystem (relative location of executable) if file is not specified in ViewStructure
-        /// </summary>
-        internal bool fileAccessPermitted { get; }
-
-        /// <summary>
         /// Function representing the error handler, called whenever ResponseHandler encounters a fatal error, allows user to propogate data or handle errors
         /// </summary>
         internal Action<Object, SaneErrorEventArgs> errorHandler { get; set; }
@@ -57,9 +50,8 @@ namespace SaneWeb.Web
         /// </summary>
         /// <param name="viewStructureContent">Raw XML data to be processed as the ViewStructure</param>
         /// <param name="databasePath">Path to the SQLite DB (optional)</param>
-        /// <param name="allowFileAccess">Boolean value determining whether or not to search the filesystem (relative location of executable) if file is not specified in ViewStructure (defaults to false)</param>
         /// <param name="prefixes">List of prefixes to bind the HTTP server to</param>
-        public SaneServer(String viewStructureContent, String databasePath = "Database\\SaneDB.db", bool allowFileAccess = false, params string[] prefixes)
+        private SaneServer(String viewStructureContent, String databasePath = "Database\\SaneDB.db", params string[] prefixes)
         {
             if (!HttpListener.IsSupported) throw new NotSupportedException("Requires Windows XP SP2, Server 2003 or later.");
 
@@ -70,11 +62,19 @@ namespace SaneWeb.Web
             models = new List<Type>();
             Directory.CreateDirectory(databasePath.Substring(0, databasePath.LastIndexOf('\\')));
             this.databasePath = databasePath;
-            this.fileAccessPermitted = allowFileAccess;
             this.errorHandler = null;
             viewStructure = new XmlDocument();
             viewStructure.LoadXml(viewStructureContent);
             _listener.Start();
+        }
+
+        public static SaneServer CreateServer(SaneServerConfiguration config)
+        {
+            if (config == null)
+            {
+                throw new ArgumentNullException("config");
+            }
+            return new SaneServer(config.ResourceXML, config.DBPath, config.Prefixes);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace SaneWeb.Web
         public Action<Object, SaneErrorEventArgs> GetErrorHandler()
         {
             return errorHandler;
-        } 
+        }
 
         /// <summary>
         /// Sets the current error handler function to be called upon internal API or response errors
@@ -118,21 +118,6 @@ namespace SaneWeb.Web
             {
                 controllers.Add(controller);
             }
-        }
-
-        /// <summary>
-        /// Registers a new WebSocketService on the specified port in the specified path
-        /// </summary>
-        /// <typeparam name="T">WebSocket service to be created</typeparam>
-        /// <param name="port">Port to run the WebSocket service on</param>
-        /// <param name="path">Path to run the WebSocket service on</param>
-        /// <returns>A WebSocketServerWrapper encapsulating the registered service</returns>
-        public WebSocketServerWrapper AddWebSocketService<T>(int port, String path) where T : WebSocketBehavior, new()
-        {
-            WebSocketServerWrapper wss = new WebSocketServerWrapper(port);
-            wss.addService<T>(path);
-            wss.start();
-            return wss;
         }
 
         /// <summary>

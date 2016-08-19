@@ -56,7 +56,7 @@ namespace SaneWeb.Data
         /// Gets the current relevant underlying data bound to this object in a List
         /// </summary>
         /// <returns>The current relevant underlying data bound to this object in a List</returns>
-        public List<T> getUnderlyingData()
+        public List<T> GetUnderlyingData()
         {
             return OpenData.getBacking();
         }
@@ -90,7 +90,7 @@ namespace SaneWeb.Data
         /// </summary>
         /// <param name="allowCache">Determines whether or not to force a full table read for the request, deny cache usage for fetching data on the first call to this method.</param>
         /// <returns>A TrackingList object with the (current) bound data in the table</returns>
-        public TrackingList<T> getData(bool allowCache)
+        public TrackingList<T> GetData(bool allowCache)
         {
             if ((allowCache) && (OpenData != null)) return OpenData;
             OpenData.Clear();
@@ -118,17 +118,17 @@ namespace SaneWeb.Data
         /// </summary>
         /// <param name="obj">Object to be added to the bound table</param>
         /// <returns>The amount of rows affected/created by the update</returns>
-        public int addAndUpdate(T obj)
+        public int AddAndUpdate(T obj)
         {
             OpenData.Add(obj);
-            return update();
+            return Update();
         }
 
         /// <summary>
         /// Updates the data stored in the bound TrackingList to the database table
         /// </summary>
         /// <returns>The amount of rows affected/created by the update</returns>
-        public int update()
+        public int Update()
         {
             lock (DBLock)
             {

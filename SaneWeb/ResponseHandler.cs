@@ -197,30 +197,6 @@ namespace SaneWeb
                 }
                 return clientData;
             }
-            if (sender.fileAccessPermitted)
-            {
-                String[] dir = context.Request.RawUrl.Substring(1).Split('/');
-                if (dir.Length != 0)
-                {
-                    String current = Environment.CurrentDirectory;
-                    for (int i = 0; i < dir.Length - 1; i++)
-                    {
-                        if (Directory.Exists(Path.Combine(current, dir[i])))
-                        {
-                            current = Path.Combine(current, dir[i]);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    if (File.Exists(Path.Combine(current, dir[dir.Length - 1])))
-                    {
-                        context.Response.ContentType = "text/html";
-                        return File.ReadAllBytes(Path.Combine(current, dir[dir.Length - 1]));
-                    }
-                }
-            }
             context.Response.StatusCode = 404;
             context.Response.ContentType = "text/html";
             byte[] ret = new byte[] { };
