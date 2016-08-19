@@ -1,7 +1,6 @@
 # SaneWeb
 <h3>What is SaneWeb?</h3>
 <p>Ever used ASP.NET? SaneWeb is a prototype friendly, lighter version of ASP.NET, fully fledged with native data persistence, highly customizable HTTP endpoints, all in a clean and straightforward C# environment.</p>
-<p>SaneWeb is a MVC-like web framework that allows easy creation of simple web apps.</p>
 <h3>Supported features:</h3>
 <ul>
 <li>HTML 5</li>
