@@ -1,17 +1,25 @@
 # SaneWeb
 <h3>What is SaneWeb?</h3>
-<p>Ever used ASP.NET? Think that. Now scale it down for simple web applications. Boom. You're there. </p>
+<p>Ever used ASP.NET? SaneWeb is a prototype friendly, lighter version of ASP.NET, fully fledged with native data peris </p>
 <p>SaneWeb is a MVC-like web framework that allows easy creation of simple web apps.</p>
-<h3>Supported stuff:</h3>
+<h3>Supported features:</h3>
 <ul>
-<li>HTML</li>
+<li>HTML 5</li>
 <li>JavaScript</li>
 <li>CSS</li>
+<li>Extensibility</li>
+<li>Lightweight</li>
+<li>Very customizable</li>
+<li>Programmatically populated templates</li>
 <li>GET/POST API requests</li>
-<li>SQLite database storage</li>
-<li>Model based database access</li>
+<li>SQLite backed database storage</li>
+<li>Cached data models</li>
+<li>Easy model based database access</li>
 </ul>
+<h3>What SaneWeb isn't</h3>
+<p>SaneWeb isn't a "pick up and go" web server for running up your blog. This is designed as a flexible tool for backend web developers to create quick API endpoints with real data backing, or to run websites that rely on a very customizable and responsive backend. I personally have used SaneWeb for a production-ready website that required split second response times and quick data access to much success.</p>
 
+<h1><b>This setup guide is very outdated! A new one will be written up soon!</b></h1>
 <h2>Basic setup</h2>
 SaneWeb is a C# library that handles basic web server functionality. Upon compiling, reference the DLL in your project to begin using SaneWeb. After you have referenced the library, there are a few files that must be created. You will need a folder called `Resources` in your solution, as well as a folder called `View`. `Resources` will be used for storing the `ViewStructure` of SaneWeb, whereas `View` will be used to store publically accessible resources (HTML, CSS, JS, etc). Inside of the `Resources` directory, create an XML file called `ViewStructure.xml` (this is arbritrary, and can be modified, but for the sake of this guide, we will be using this). This file contains information on what files will be publically accessible, how they are accessed, and the content-type of each. The following XML data is a sample.
 ```XML
